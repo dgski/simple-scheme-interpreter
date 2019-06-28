@@ -5,9 +5,11 @@ Expression eval(Expression exp, Environment env)
     return std::visit(Evaluator{env},exp);
 }
 
-Expression apply(Symbol funcName, Expression arg, Environment env)
+Expression apply(Symbol funcName, Expression args, Environment env)
 {
-    if(funcName == "add1")
+    auto arg = *std::get<Pair>(args).first;
+
+    if(funcName == "addOne")
     {
         return Integer{std::get<Integer>(eval(arg,env)) + 1};
     }

@@ -1,4 +1,5 @@
 #include "expression.h"
+#include "parser.h"
 
 int main()
 {
@@ -20,7 +21,7 @@ int main()
     std::cout << std::get<Integer>(res) << std::endl;
     */
 
-
+   /* 
     // Lambda Test
     Expression identityFunction = Pair{
         std::make_shared<Expression>("lambda"),
@@ -43,4 +44,39 @@ int main()
     Environment env{};
     auto res2 = eval(exp2, env);
     std::cout << res2 << std::endl;
+
+
+    //constexpr const char* sampleExpressionStr = R"((lambda (x) x))";
+    //auto parseResult = parse(sampleExpressionStr);
+    //cout << parseResult.value() << endl;
+
+    constexpr const char* sampleExpressionStr = R"(
+        ((lambda (x) x) (addOne 1))
+    )";
+    if(auto parseResult = parse(sampleExpressionStr); parseResult.has_value())
+    {
+        cout << parseResult.value() << endl;
+        Environment env{};
+        auto res = eval(parseResult.value(), env);
+        std::cout << res << std::endl;
+    }
+    */
+
+    string line;
+    while(true)
+    {
+        std::cout << "SSI>";
+        getline(cin,line);
+        if(auto parseResult = parse(line); parseResult.has_value())
+        {
+            Environment env{};
+            auto res = eval(parseResult.value(), env);
+            std::cout << res << std::endl;
+        }
+        else
+        {
+            cout << "Error With Expression" << endl;
+        }
+    }
+
 }

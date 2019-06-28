@@ -1,3 +1,5 @@
+#pragma once
+
 #include <variant>
 #include <string>
 #include <map>
@@ -25,8 +27,7 @@ struct Pair
 using Environment = std::map<Symbol,Expression>;
 
 Expression eval(Expression exp, Environment env);
-Expression apply(Function func, Expression arg);
-Expression apply(Symbol funcName, Expression arg, Environment env);
+Expression apply(Symbol funcName, Expression args, Environment env);
 
 struct Evaluator
 {
@@ -36,7 +37,7 @@ struct Evaluator
 
     Expression operator()(Null n)
     {
-        return Null{};
+        return n;
     }
     Expression operator()(Symbol s)
     {
@@ -52,25 +53,26 @@ struct Evaluator
         {   
             auto second = *p.second;
             auto rest = std::get<Pair>(second);
-            auto argumentName = std::get<Symbol>(*std::get<Pair>(*rest.first).first);
-            auto lambdaBody = *rest.second;
-
+            auto argumentName = std::get<Symbol>(*std::get<Pair>(*(rest.first)).first);
+            auto lambdaBody = *std::get<Pair>(*(rest.second)).first;
             auto newEnv = env;
 
-            return Function{[newEnv, argumentName, lambdaBody](Expression arg) mutable
+            return Function{[newEnv, argumentName, lambdaBody](Expression args) mutable
             {
+                auto arg = *std::get<Pair>(args).first;
                 newEnv[argumentName] = arg;
                 return eval(lambdaBody, newEnv);
             }};
         }
 
-        auto first = eval(*p.first, env);
         auto second = eval(*p.second, env);
 
-        if(std::holds_alternative<Symbol>(first))
+        if(std::holds_alternative<Symbol>(*p.first))
         {
-            return apply(std::get<Symbol>(first), second, env);
+            return apply(std::get<Symbol>(*p.first), second, env);
         }
+        
+        auto first = eval(*p.first, env);
       
         if(std::holds_alternative<Function>(first))
         {

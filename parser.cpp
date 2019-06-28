@@ -1,6 +1,83 @@
 #include "parser.h"
 
-optional<Expression> charParser(string_view s)
+bool isValidSymbolChar(char c)
+{
+    switch(c)
+    {
+        case '(': return false;
+        case ')': return false;
+        case ' ': return false;
+        case '\n': return false;
+    }
+
+    if(isdigit(c))
+        return false;
+
+    return true;
+}
+
+optional<Expression> intParser(string_view& s, string& intStr)
+{
+    if(s.length() == 0)
+        return Integer{ atoi(intStr.c_str()) };
+    
+    char c = s.front();
+
+    if(isdigit(c))
+    {
+        s.remove_prefix(1);
+        intStr += c;
+        return intParser(s,intStr);
+    }
+    else
+    {
+        return Integer{ atoi(intStr.c_str()) };
+    }
+}
+
+optional<Expression> symbolParser(string_view& s, string& res)
+{
+    if(s.length() == 0)
+        return Symbol{ res };
+    
+    char c = s.front();
+
+    if(isValidSymbolChar(c))
+    {
+        s.remove_prefix(1);
+        res += c;
+        return symbolParser(s,res);
+    }
+    else
+    {
+        return Symbol{ res };
+    }
+}
+
+optional<Expression> listParser(string_view& s)
+{   
+    if(s.front() == ')')
+    {
+        s.remove_prefix(1);
+        return Null{};
+    }
+
+    auto first = whitespaceParser(s, charParser);
+    auto rest = listParser(s);
+
+    if(!rest.has_value())
+    {
+        rest = Null{};
+    }
+
+
+    return Pair{
+        make_shared<Expression>(first.value()),
+        make_shared<Expression>(rest.value())
+    };
+}
+
+optional<Expression> charParser(string_view& s)
 {
     if(s.length() == 0)
         return nullopt;
@@ -10,37 +87,27 @@ optional<Expression> charParser(string_view s)
 
     if(c == '(')
     {
-        return whitespaceParser(s,charParser);
+        return listParser(s);
     }
     if(c == ')')
     {
-        return Expression{list<Expression>{}};
+        return Null{};
+    }
+    else if(isdigit(c))
+    {
+        string intStr;
+        intStr += c;
+        return intParser(s, intStr);
     }
     else
     {
-        string current;
-        current += c;
-        auto currExpression = Expression{current};
-
-        auto next = whitespaceParser(s, charParser);
-        if(next.has_value())
-        {
-            if(holds_alternative<list<Expression>>(next.value().data))
-            {
-                auto rest = get<list<Expression>>(next.value().data);
-                list<Expression> l{currExpression};
-                l.splice(l.end(),rest);
-                return Expression{l};
-            }
-        }
-        else
-        {
-            return currExpression;
-        }
+        string symStr;
+        symStr += c;
+        return symbolParser(s, symStr);
     }
 }
 
-optional<Expression> whitespaceParser(string_view s, ParserFunction next)
+optional<Expression> whitespaceParser(string_view& s, ParserFunction next)
 {
     if(s.length() == 0)
         return nullopt;
@@ -59,5 +126,6 @@ optional<Expression> whitespaceParser(string_view s, ParserFunction next)
 
 optional<Expression> parse(string s)
 {
-    return whitespaceParser(s, charParser);
+    string_view sv{s};
+    return whitespaceParser(sv, charParser);
 }

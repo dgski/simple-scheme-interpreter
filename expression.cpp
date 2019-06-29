@@ -13,10 +13,9 @@ Expression apply(Symbol funcName, Expression args, Environment env)
     {
         return Integer{std::get<Integer>(eval(arg,env)) + 1};
     }
-    else if(funcName == "square")
+    else if(funcName == "minusOne")
     {
-        auto value = std::get<Integer>(eval(arg,env));
-        return Integer{value * value};
+        return Integer{std::get<Integer>(eval(arg,env)) - 1};
     }
 
     auto envFunc = std::get<Function>(env[funcName]);

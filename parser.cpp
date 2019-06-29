@@ -70,7 +70,6 @@ optional<Expression> listParser(string_view& s)
         rest = Null{};
     }
 
-
     return Pair{
         make_shared<Expression>(first.value()),
         make_shared<Expression>(rest.value())

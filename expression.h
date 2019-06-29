@@ -48,7 +48,7 @@ struct Evaluator
         return i;
     }
     Expression operator()(Pair p)
-    {
+    {   
         if(std::holds_alternative<Symbol>(*p.first) && (std::get<Symbol>(*p.first) == "lambda"))
         {   
             auto second = *p.second;
@@ -65,21 +65,19 @@ struct Evaluator
             }};
         }
 
-        auto second = eval(*p.second, env);
-
         if(std::holds_alternative<Symbol>(*p.first))
         {
-            return apply(std::get<Symbol>(*p.first), second, env);
+            return apply(std::get<Symbol>(*p.first), *p.second, env);
         }
         
         auto first = eval(*p.first, env);
       
         if(std::holds_alternative<Function>(first))
         {
-            return std::get<Function>(first)(eval(second, env));
+            return std::get<Function>(first)(eval(*p.second, env));
         }
 
-        return Pair{std::make_shared<Expression>(first),std::make_shared<Expression>(second)};
+        return Pair{std::make_shared<Expression>(first),std::make_shared<Expression>(*p.second)};
     }
     Expression operator()(Function f)
     {

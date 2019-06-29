@@ -69,6 +69,7 @@ int main()
         getline(cin,line);
         if(auto parseResult = parse(line); parseResult.has_value())
         {
+            cout << parseResult.value() << endl;
             Environment env{};
             auto res = eval(parseResult.value(), env);
             std::cout << res << std::endl;

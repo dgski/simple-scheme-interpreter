@@ -64,12 +64,7 @@ optional<Expression> listParser(string_view& s)
 
     auto first = whitespaceParser(s, charParser);
     auto rest = listParser(s);
-
-    if(!rest.has_value())
-    {
-        rest = Null{};
-    }
-
+    
     return Pair{
         make_shared<Expression>(first.value()),
         make_shared<Expression>(rest.value())

@@ -1,5 +1,8 @@
 #include "expression.h"
 #include "parser.h"
+#include "templib.h"
+
+#include <fstream>
 
 int main()
 {
@@ -61,16 +64,18 @@ int main()
         std::cout << res << std::endl;
     }
     */
+   
 
     string line;
+    Environment env{};
+    eval(parse(add).value(), env);
     while(true)
     {
+        std::cout << env << std::endl;
         std::cout << "SSI>";
         getline(cin,line);
         if(auto parseResult = parse(line); parseResult.has_value())
         {
-            cout << parseResult.value() << endl;
-            Environment env{};
             auto res = eval(parseResult.value(), env);
             std::cout << res << std::endl;
         }

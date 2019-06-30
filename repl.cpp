@@ -4,17 +4,31 @@
 #include "templib.h"
 
 #include <fstream>
+#include <sstream>
 
 int main()
 {
     string line;
     Environments env{};
     env.add();
-    eval(parse(add).value(), env);
-    eval(parse(mapFunc).value(), env);
-    eval(parse(addTwo).value(), env);
-    eval(parse(filterFunc).value(), env);
-    eval(parse(rangeListFunc).value(), env);
+    
+    ifstream f{"stdlib/basics.scm"};
+    if(f.is_open())
+    {
+        stringstream ss;
+        ss << f.rdbuf();
+
+        string s{ ss.str() };
+        if(auto parseResult = multiParse(s); parseResult.has_value())
+        {
+            auto beginForm = Pair{
+                std::make_shared<Expression>(Symbol{"begin"}),
+                std::make_shared<Expression>(parseResult.value())
+            };
+            eval(beginForm, env);
+        }
+    }
+
     while(true)
     {
         std::cout << "SSI>";

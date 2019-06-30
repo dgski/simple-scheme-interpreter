@@ -45,6 +45,11 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
             return eval(lambdaBody, newEnv);
         }};
     }
+    else if(formName == "begin")
+    {   
+        auto res = evalAllArgsInList(args.all(), env);
+        return Null{}; // TODO return last expression
+    }
 
     return std::nullopt;
 }

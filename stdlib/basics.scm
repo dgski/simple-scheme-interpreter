@@ -32,9 +32,34 @@
 
 (define **
     (lambda (a b)
-        (if (= a 0)
+        (if (= b 0)
             1
-            (* b (** (minus a 1) b)))))
+            (* a (** a (minus b 1))))))
+
+(define tet
+    (lambda (a b)
+        (if (= b 0)
+            1
+            (** b (tet a (minus b 1))))))
+
+(define /
+    (lambda (a b)
+        (if (> 0 (minus a b))
+            0
+            (addOne (/ (minus a b) b)))))
+
+(define remainder
+    (lambda (a b)
+        (minus a
+               (* b (/ a b)))))
+
+(define even?
+    (lambda (n)
+        (= 0 (remainder n 2))))
+
+(define odd?
+    (lambda (n)
+        (not (even? n))))
 
 (define length
     (lambda (col)

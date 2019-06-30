@@ -124,6 +124,14 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
         }};
     }
+    else if(s == "println")
+    {
+        return Function{[](Arguments& args) mutable
+        {
+            std::cout << args.at(0) << '\n';
+            return Null{};
+        }};
+    }
 
     return std::nullopt;
 }

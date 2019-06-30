@@ -77,10 +77,6 @@
                 #f)
             #f)))
 
-
-
-
-
 (define car first)
 (define cdr rest)
 

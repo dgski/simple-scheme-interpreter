@@ -86,7 +86,7 @@
 
 (define cdar
     (lambda (p)
-        (car (cdr p))))
+        (cdr (car p))))
 
 (define struct-helper
   (lambda (fields values)
@@ -105,6 +105,3 @@
     (if (eqv? field (caar struct))
         (cdar struct)
         (: field (cdr struct)))))
-
-(define test (struct '(id)))
-(define item (test '(100)))

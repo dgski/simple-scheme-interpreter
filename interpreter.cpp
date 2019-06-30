@@ -119,8 +119,6 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     {
         return Function{[](Arguments& args) mutable
         {
-            std::cout << "args0:" << args.at(0) << std::endl;
-            std::cout << "args1:" << args.at(1) << std::endl;
             return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
         }};
     }

@@ -41,8 +41,8 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
 
     Expression get(const Symbol& s) const
     {
-        auto it = begin();
-        while(it != end())
+        auto it = rbegin();
+        while(it != rend())
         {
             if((*it)->contains(s))
                 return (*(*it))[s];

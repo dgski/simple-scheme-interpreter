@@ -11,7 +11,6 @@ using ParserFunction = optional<Expression>(string_view& s);
 
 bool isValidSymbolChar(char c);
 
-
 optional<Expression> intParser(string_view& s, string& intStr);
 optional<Expression> symbolParser(string_view& s, string& res);
 optional<Expression> charParser(string_view& s);

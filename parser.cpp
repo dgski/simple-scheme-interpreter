@@ -113,7 +113,7 @@ optional<Expression> charParser(string_view& s)
     {
         return boolParser(s);
     }
-    else if(isdigit(c))
+    else if(isdigit(c) || c == '-')
     {
         string intStr;
         intStr += c;

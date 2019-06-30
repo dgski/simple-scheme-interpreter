@@ -84,6 +84,15 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return Boolean{ arg0 == arg1 };
         }};
     }
+    else if(s == "<")
+    {
+        return Function{[](Arguments& args) mutable
+        {
+            auto arg0 = std::get<Integer>(args.at(0));
+            auto arg1 = std::get<Integer>(args.at(1));
+            return Boolean{ arg0 < arg1 };
+        }};
+    }
     else if(s == "cons")
     {
         return Function{[](Arguments& args) mutable

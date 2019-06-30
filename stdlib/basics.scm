@@ -77,6 +77,12 @@
                 #f)
             #f)))
 
+(define not
+    (lambda (expr)
+        (if expr
+            #f
+            #t)))
+
 (define car first)
 (define cdr rest)
 

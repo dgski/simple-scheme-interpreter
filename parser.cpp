@@ -1,6 +1,6 @@
 #include "parser.h"
 
-bool isValidSymbolChar(char c)
+bool isValidSymbol(char c)
 {
     switch(c)
     {
@@ -8,12 +8,25 @@ bool isValidSymbolChar(char c)
         case ')': return false;
         case ' ': return false;
         case '\n': return false;
+        case '\'': return false;
     }
 
     if(isdigit(c))
         return false;
 
     return true;
+}
+
+bool isWhiteSpace(char c)
+{
+        switch(c)
+    {
+        case ' ': return true;
+        case '\n': return true;
+        case '\t': return true;
+    }
+
+    return false;
 }
 
 optional<Expression> boolParser(string_view& s)
@@ -64,7 +77,7 @@ optional<Expression> symbolParser(string_view& s, string& res)
     }
     
     const char c = s.front();
-    if(isValidSymbolChar(c))
+    if(isValidSymbol(c))
     {
         s.remove_prefix(1);
         res += c;
@@ -119,6 +132,21 @@ optional<Expression> charParser(string_view& s)
         intStr += c;
         return intParser(s, intStr);
     }
+    else if(c == '\'')
+    {        
+        if(auto res = charParser(s); res.has_value())
+        {
+            return Pair{
+                make_shared<Expression>(Symbol{"quote"}),
+                make_shared<Expression>(Pair{
+                    make_shared<Expression>(res.value()),
+                    make_shared<Expression>(Null{})
+                })
+            };
+        }
+
+        return nullopt;
+    }
     else
     {
         string symStr;
@@ -135,7 +163,7 @@ optional<Expression> whitespaceParser(string_view& s, ParserFunction next)
     }
 
     const char c = s.front();
-    if(c == ' ' || c == '\n')
+    if(isWhiteSpace(c))
     {
         s.remove_prefix(1);
         return whitespaceParser(s, next);
@@ -165,11 +193,16 @@ optional<Expression> multiParser(string_view& s)
 
     const auto first = whitespaceParser(s, charParser);
     const auto rest = multiParser(s);
-    
-    return Pair{
-        make_shared<Expression>(first.value()),
-        make_shared<Expression>(rest.value())
-    };
+
+    if(first.has_value() && rest.has_value())
+    {
+        return Pair{
+            make_shared<Expression>(first.value()),
+            make_shared<Expression>(rest.value())
+        };
+    }
+
+    return nullopt;
 }
 
 optional<Expression> multiParse(string& s)

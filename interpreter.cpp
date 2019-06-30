@@ -1,6 +1,6 @@
 #include "interpreter.h"
 
-Expression eval(Expression exp, Environments& env)
+Expression eval(Expression& exp, Environments& env)
 {
     return std::visit(Evaluator{env},exp);
 }
@@ -49,6 +49,11 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
     {   
         auto res = evalAllArgsInList(args.all(), env);
         return Null{}; // TODO return last expression
+    }
+    else if(formName == "list")
+    {
+        auto res = evalAllArgsInList(args.all(), env);
+        return res;
     }
 
     return std::nullopt;
@@ -108,6 +113,15 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
         return Function{[](Arguments& args) mutable
         {
             return Boolean{ std::holds_alternative<Null>(args.at(0)) };
+        }};
+    }
+    else if(s == "eqv?")
+    {
+        return Function{[](Arguments& args) mutable
+        {
+            std::cout << "args0:" << args.at(0) << std::endl;
+            std::cout << "args1:" << args.at(1) << std::endl;
+            return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
         }};
     }
 

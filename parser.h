@@ -9,7 +9,8 @@ using namespace std;
 
 using ParserFunction = optional<Expression>(string_view& s);
 
-bool isValidSymbolChar(char c);
+bool isValidSymbol(char c);
+bool isWhiteSpace(char c);
 
 optional<Expression> boolParser(string_view& s);
 optional<Expression> intParser(string_view& s, string& intStr);

@@ -77,7 +77,7 @@ struct Arguments
     Pair& listOfArgs;
     Arguments(Expression& _listOfArgs) : listOfArgs(std::get<Pair>(_listOfArgs)) {}
 
-    Expression at(int index) const
+    Expression& at(int index) const
     {
         Pair* ref = &listOfArgs;
         while(index != 0)
@@ -95,7 +95,7 @@ struct Arguments
     }
 };
 
-Expression eval(Expression exp, Environments& env);
+Expression eval(Expression& exp, Environments& env);
 std::optional<Expression> applySpecialForms(Symbol& formName, Arguments& args, Environments& env);
 std::optional<Expression> getPrimitiveFunction(Symbol& s);
 

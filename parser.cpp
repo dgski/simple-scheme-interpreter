@@ -16,6 +16,28 @@ bool isValidSymbolChar(char c)
     return true;
 }
 
+optional<Expression> boolParser(string_view& s)
+{
+    if(s.length() == 0)
+    {
+        return nullopt;
+    }
+
+    const char c = s.front();
+    s.remove_prefix(1);
+
+    if(c == 't')
+    {
+        return Boolean{ true };
+    }
+    else if(c == 'f')
+    {
+        return Boolean{ false };
+    }
+
+    return nullopt;    
+}
+
 optional<Expression> intParser(string_view& s, string& intStr)
 {
     if(s.length() == 0)
@@ -86,6 +108,10 @@ optional<Expression> charParser(string_view& s)
     else if(c == ')')
     {
         return Null{};
+    }
+    else if(c == '#')
+    {
+        return boolParser(s);
     }
     else if(isdigit(c))
     {

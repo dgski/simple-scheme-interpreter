@@ -17,4 +17,9 @@ optional<Expression> symbolParser(string_view& s, string& res);
 optional<Expression> charParser(string_view& s);
 optional<Expression> whitespaceParser(string_view& s, ParserFunction next);
 
-optional<Expression> parse(string str);
+optional<Expression> parse(string& s);
+optional<Expression> parse(string s);
+
+optional<Expression> multiParser(string_view& s);
+
+optional<Expression> multiParse(string& s);

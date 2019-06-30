@@ -144,8 +144,36 @@ optional<Expression> whitespaceParser(string_view& s, ParserFunction next)
     return next(s);
 }
 
+optional<Expression> parse(string& s)
+{
+    string_view sv{s};
+    return whitespaceParser(sv, charParser);
+}
+
 optional<Expression> parse(string s)
 {
     string_view sv{s};
     return whitespaceParser(sv, charParser);
+}
+
+optional<Expression> multiParser(string_view& s)
+{   
+    if(s.empty())
+    {
+        return Null{};
+    }
+
+    const auto first = whitespaceParser(s, charParser);
+    const auto rest = multiParser(s);
+    
+    return Pair{
+        make_shared<Expression>(first.value()),
+        make_shared<Expression>(rest.value())
+    };
+}
+
+optional<Expression> multiParse(string& s)
+{
+    string_view sv{s};
+    return multiParser(sv);
 }

@@ -48,7 +48,8 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
     else if(formName == "begin")
     {   
         auto res = evalAllArgsInList(args.all(), env);
-        return Null{}; // TODO return last expression
+        Arguments adaptor{res};
+        return adaptor.last();
     }
     else if(formName == "list")
     {

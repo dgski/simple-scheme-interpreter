@@ -94,6 +94,17 @@ public:
     {
         return listOfArgs;
     }
+
+    Expression& last() const
+    {
+        Pair* ref = &listOfArgs;
+        while(!std::holds_alternative<Null>(*ref->second))
+        {
+            ref = &std::get<Pair>(*ref->second);
+        }
+        
+        return *ref->first;
+    }
 };
 
 Expression eval(Expression& exp, Environments& env);
@@ -113,7 +124,7 @@ public:
     Expression operator()(Pair& p);
     Expression operator()(Function& f) { return f; }
 };
-// end evalualtion
+// end evaluation
 
 // helper
 void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env);

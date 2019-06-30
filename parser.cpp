@@ -104,6 +104,24 @@ std::optional<Expression> listParser(std::string_view& s)
     };
 }
 
+std::optional<Expression> commentParser(std::string_view& s)
+{
+    if(s.empty())
+    {
+        return Null{};
+    }
+
+    const char c = s.front();
+    s.remove_prefix(1);
+
+    if(c == '\n')
+    {
+        return whitespaceParser(s, charParser);
+    }
+
+    return commentParser(s);
+}
+
 std::optional<Expression> charParser(std::string_view& s)
 {
     if(s.length() == 0)
@@ -146,6 +164,10 @@ std::optional<Expression> charParser(std::string_view& s)
         }
 
         return std::nullopt;
+    }
+    else if(c == ';')
+    {
+        return commentParser(s);
     }
     else
     {

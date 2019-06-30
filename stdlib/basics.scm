@@ -1,3 +1,4 @@
+; math
 (define <=
     (lambda (a b)
         (or (= a b)
@@ -61,6 +62,7 @@
     (lambda (n)
         (not (even? n))))
 
+; list
 (define length
     (lambda (col)
         (if (null? col)
@@ -125,6 +127,7 @@
 (define car first)
 (define cdr rest)
 
+; struct
 (define caar
     (lambda (p)
         (car (car p))))

@@ -1,8 +1,6 @@
 #include "parser.h"
 #include "interpreter.h"
 
-#include "templib.h"
-
 #include <fstream>
 #include <sstream>
 

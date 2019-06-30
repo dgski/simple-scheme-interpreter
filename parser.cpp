@@ -29,11 +29,11 @@ bool isWhiteSpace(char c)
     return false;
 }
 
-optional<Expression> boolParser(string_view& s)
+std::optional<Expression> boolParser(std::string_view& s)
 {
     if(s.length() == 0)
     {
-        return nullopt;
+        return std::nullopt;
     }
 
     const char c = s.front();
@@ -48,10 +48,10 @@ optional<Expression> boolParser(string_view& s)
         return Boolean{ false };
     }
 
-    return nullopt;    
+    return std::nullopt;    
 }
 
-optional<Expression> intParser(string_view& s, string& intStr)
+std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
 {
     if(s.length() == 0)
     {
@@ -69,7 +69,7 @@ optional<Expression> intParser(string_view& s, string& intStr)
     return Integer{ atoi(intStr.c_str()) };
 }
 
-optional<Expression> symbolParser(string_view& s, string& res)
+std::optional<Expression> symbolParser(std::string_view& s, std::string& res)
 {
     if(s.length() == 0)
     {
@@ -87,7 +87,7 @@ optional<Expression> symbolParser(string_view& s, string& res)
     return Symbol{ res };
 }
 
-optional<Expression> listParser(string_view& s)
+std::optional<Expression> listParser(std::string_view& s)
 {   
     if(s.front() == ')')
     {
@@ -99,16 +99,16 @@ optional<Expression> listParser(string_view& s)
     const auto rest = listParser(s);
     
     return Pair{
-        make_shared<Expression>(first.value()),
-        make_shared<Expression>(rest.value())
+        std::make_shared<Expression>(first.value()),
+        std::make_shared<Expression>(rest.value())
     };
 }
 
-optional<Expression> charParser(string_view& s)
+std::optional<Expression> charParser(std::string_view& s)
 {
     if(s.length() == 0)
     {
-        return nullopt;
+        return std::nullopt;
     }
 
     const char c = s.front();
@@ -128,7 +128,7 @@ optional<Expression> charParser(string_view& s)
     }
     else if(isdigit(c) || c == '-')
     {
-        string intStr;
+        std::string intStr;
         intStr += c;
         return intParser(s, intStr);
     }
@@ -137,29 +137,29 @@ optional<Expression> charParser(string_view& s)
         if(auto res = charParser(s); res.has_value())
         {
             return Pair{
-                make_shared<Expression>(Symbol{"quote"}),
-                make_shared<Expression>(Pair{
-                    make_shared<Expression>(res.value()),
-                    make_shared<Expression>(Null{})
+                std::make_shared<Expression>(Symbol{"quote"}),
+                std::make_shared<Expression>(Pair{
+                    std::make_shared<Expression>(res.value()),
+                    std::make_shared<Expression>(Null{})
                 })
             };
         }
 
-        return nullopt;
+        return std::nullopt;
     }
     else
     {
-        string symStr;
+        std::string symStr;
         symStr += c;
         return symbolParser(s, symStr);
     }
 }
 
-optional<Expression> whitespaceParser(string_view& s, ParserFunction next)
+std::optional<Expression> whitespaceParser(std::string_view& s, ParserFunction next)
 {
     if(s.length() == 0)
     {
-        return nullopt;
+        return std::nullopt;
     }
 
     const char c = s.front();
@@ -172,19 +172,19 @@ optional<Expression> whitespaceParser(string_view& s, ParserFunction next)
     return next(s);
 }
 
-optional<Expression> parse(string& s)
+std::optional<Expression> parse(std::string& s)
 {
-    string_view sv{s};
+    std::string_view sv{s};
     return whitespaceParser(sv, charParser);
 }
 
-optional<Expression> parse(string s)
+std::optional<Expression> parse(std::string s)
 {
-    string_view sv{s};
+    std::string_view sv{s};
     return whitespaceParser(sv, charParser);
 }
 
-optional<Expression> multiParser(string_view& s)
+std::optional<Expression> multiParser(std::string_view& s)
 {   
     if(s.empty())
     {
@@ -197,16 +197,16 @@ optional<Expression> multiParser(string_view& s)
     if(first.has_value() && rest.has_value())
     {
         return Pair{
-            make_shared<Expression>(first.value()),
-            make_shared<Expression>(rest.value())
+            std::make_shared<Expression>(first.value()),
+            std::make_shared<Expression>(rest.value())
         };
     }
 
-    return nullopt;
+    return std::nullopt;
 }
 
-optional<Expression> multiParse(string& s)
+std::optional<Expression> multiParse(std::string& s)
 {
-    string_view sv{s};
+    std::string_view sv{s};
     return multiParser(sv);
 }

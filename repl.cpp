@@ -6,13 +6,13 @@
 
 void parseAndEvalFile(const char* fileName, Environments& env)
 {
-    ifstream f{fileName};
+    std::ifstream f{fileName};
     if(f.is_open())
     {
-        stringstream ss;
+        std::stringstream ss;
         ss << f.rdbuf();
 
-        string s{ ss.str() };
+        std::string s{ ss.str() };
         if(auto parseResult = multiParse(s); parseResult.has_value())
         {
             auto beginForm = Expression{Pair{
@@ -26,7 +26,7 @@ void parseAndEvalFile(const char* fileName, Environments& env)
 
 int main()
 {
-    string line;
+    std::string line;
     Environments env{};
     env.add();
 
@@ -35,7 +35,7 @@ int main()
     while(true)
     {
         std::cout << "SSI>";
-        getline(cin,line);
+        std::getline(std::cin,line);
         if(auto parseResult = parse(line); parseResult.has_value())
         {
             auto res = eval(parseResult.value(), env);
@@ -43,7 +43,7 @@ int main()
         }
         else
         {
-            cout << "Error With Expression" << endl;
+            std::cout << "Error With Expression" << std::endl;
         }
     }
 

@@ -5,21 +5,19 @@
 #include <iostream>
 #include "expression.h"
 
-using namespace std;
-
-using ParserFunction = optional<Expression>(string_view& s);
+using ParserFunction = std::optional<Expression>(std::string_view& s);
 
 bool isValidSymbol(char c);
 bool isWhiteSpace(char c);
 
-optional<Expression> boolParser(string_view& s);
-optional<Expression> intParser(string_view& s, string& intStr);
-optional<Expression> symbolParser(string_view& s, string& res);
-optional<Expression> charParser(string_view& s);
-optional<Expression> whitespaceParser(string_view& s, ParserFunction next);
+std::optional<Expression> boolParser(std::string_view& s);
+std::optional<Expression> intParser(std::string_view& s, std::string& intStr);
+std::optional<Expression> symbolParser(std::string_view& s, std::string& res);
+std::optional<Expression> charParser(std::string_view& s);
+std::optional<Expression> whitespaceParser(std::string_view& s, ParserFunction next);
 
-optional<Expression> parse(string& s);
+std::optional<Expression> parse(std::string& s);
 
-optional<Expression> multiParser(string_view& s);
+std::optional<Expression> multiParser(std::string_view& s);
 
-optional<Expression> multiParse(string& s);
+std::optional<Expression> multiParse(std::string& s);

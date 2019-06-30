@@ -72,9 +72,10 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
 // end environments
 
 // evaluation
-struct Arguments
+class Arguments
 {
     Pair& listOfArgs;
+public:
     Arguments(Expression& _listOfArgs) : listOfArgs(std::get<Pair>(_listOfArgs)) {}
 
     Expression& at(int index) const
@@ -99,30 +100,18 @@ Expression eval(Expression& exp, Environments& env);
 std::optional<Expression> applySpecialForms(Symbol& formName, Arguments& args, Environments& env);
 std::optional<Expression> getPrimitiveFunction(Symbol& s);
 
-struct Evaluator
+class Evaluator
 {
     Environments& env;
-
+public:
     Evaluator(Environments& _env) : env(_env) {}
 
-    Expression operator()(Null& n)
-    {
-        return n;
-    }
+    Expression operator()(Null& n) { return n; }
     Expression operator()(Symbol& s);
-    Expression operator()(Integer& i)
-    {
-        return i;
-    }
-    Expression operator()(Boolean& b)
-    {
-        return b;
-    }
+    Expression operator()(Integer& i) { return i; }
+    Expression operator()(Boolean& b) { return b; }
     Expression operator()(Pair& p);
-    Expression operator()(Function& f)
-    {
-        return f;
-    }
+    Expression operator()(Function& f) { return f; }
 };
 // end evalualtion
 

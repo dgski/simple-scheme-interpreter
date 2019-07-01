@@ -40,25 +40,12 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
         return Closure{[newEnv = env, body, argNames](List& args) mutable
         {
             newEnv.add();
-            insertArgsIntoEnvironment(std::get<Pair>(argNames), args.all(), *newEnv.back());
+            if(!std::holds_alternative<Null>(argNames))
+            {
+                insertArgsIntoEnvironment(std::get<Pair>(argNames), std::get<Pair>(args.all()), *newEnv.back());
+            }
             return eval(body, newEnv);
         }};
-    }
-    else if(formName == "begin")
-    {   
-        auto res = evalAllArgsInList(args.all(), env);
-        List adaptor{res};
-        return adaptor.last();
-    }
-    else if(formName == "list")
-    {
-        auto res = evalAllArgsInList(args.all(), env);
-        return res;
-    }
-    else if(formName == "exit")
-    {
-        exit(EXIT_SUCCESS);
-        return std::nullopt;
     }
 
     return std::nullopt;
@@ -144,6 +131,28 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return Null{};
         }};
     }
+    else if(s == "exit")
+    {
+        return Closure{[](List& args)
+        {
+            exit(EXIT_SUCCESS);
+            return Null{};
+        }};
+    }
+    else if(s == "begin")
+    {   
+        return Closure{[](List& args)
+        {
+            return args.last();
+        }};
+    }
+    else if(s == "list")
+    {
+        return Closure{[](List& args)
+        {
+            return args.all();
+        }};
+    }
 
     return std::nullopt;
 }
@@ -180,7 +189,7 @@ Expression Evaluator::operator()(Pair& p)
     
     if(std::holds_alternative<Closure>(first))
     {
-        auto evaluatedList = evalAllArgsInList(std::get<Pair>(*p.second), env);
+        auto evaluatedList = evalAllArgsInList(*p.second, env);
         List args{ evaluatedList };
         return std::get<Closure>(first)(args);
     }
@@ -196,12 +205,16 @@ void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env)
         insertArgsIntoEnvironment(std::get<Pair>(*names.second), std::get<Pair>(*args.second), env);
 }
 
-Expression evalAllArgsInList(Pair& p, Environments& env)
+Expression evalAllArgsInList(Expression& exp, Environments& env)
 {
+    if(std::holds_alternative<Null>(exp))
+        return Null{};
+
+    auto p = std::get<Pair>(exp);
     auto first = eval(*p.first, env);
     auto second = std::holds_alternative<Null>(*p.second) ?
         Null{} :
-        evalAllArgsInList(std::get<Pair>(*p.second), env);
+        evalAllArgsInList(*p.second, env);
 
     return Pair{
         std::make_shared<Expression>(first),

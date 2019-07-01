@@ -91,9 +91,9 @@ public:
         return *ref->first;
     }
 
-    Pair& all() const
+    Expression& all() const
     {
-        return std::get<Pair>(source);
+        return source;
     }
 
     Expression& last() const
@@ -129,5 +129,5 @@ public:
 
 // helper
 void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env);
-Expression evalAllArgsInList(Pair& p, Environments& e);
+Expression evalAllArgsInList(Expression& exp, Environments& env);
 // end helper

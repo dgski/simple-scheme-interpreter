@@ -5,7 +5,7 @@ Expression eval(Expression& exp, Environments& env)
     return std::visit(Evaluator{env},exp);
 }
 
-std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, Environments& env)
+std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environments& env)
 {
     if(formName == "define")
     {
@@ -37,7 +37,7 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
         auto argNames = args.at(0);
         auto body = args.at(1);
 
-        return Closure{[newEnv = env, body, argNames](Arguments& args) mutable
+        return Closure{[newEnv = env, body, argNames](List& args) mutable
         {
             newEnv.add();
             insertArgsIntoEnvironment(std::get<Pair>(argNames), args.all(), *newEnv.back());
@@ -47,7 +47,7 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
     else if(formName == "begin")
     {   
         auto res = evalAllArgsInList(args.all(), env);
-        Arguments adaptor{res};
+        List adaptor{res};
         return adaptor.last();
     }
     else if(formName == "list")
@@ -63,21 +63,21 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
 {
     if(s == "addOne")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return Integer{std::get<Integer>(args.at(0)) + 1};
         }};
     }
     else if(s == "minusOne")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return Integer{std::get<Integer>(args.at(0)) - 1};
         }};
     }
     else if(s == "=")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             auto arg0 = std::get<Integer>(args.at(0));
             auto arg1 = std::get<Integer>(args.at(1));
@@ -86,7 +86,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "<")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             auto arg0 = std::get<Integer>(args.at(0));
             auto arg1 = std::get<Integer>(args.at(1));
@@ -95,7 +95,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "cons")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return Pair{
                 std::make_shared<Expression>(args.at(0)),
@@ -105,35 +105,35 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "first")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return *std::get<Pair>(args.at(0)).first;
         }};
     }
     else if(s == "rest")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return *std::get<Pair>(args.at(0)).second;
         }};
     }
     else if(s == "null?")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return Boolean{ std::holds_alternative<Null>(args.at(0)) };
         }};
     }
     else if(s == "eqv?")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
         }};
     }
     else if(s == "println")
     {
-        return Closure{[](Arguments& args)
+        return Closure{[](List& args)
         {
             std::cout << args.at(0) << '\n';
             return Null{};
@@ -163,7 +163,7 @@ Expression Evaluator::operator()(Pair& p)
 {   
     if(std::holds_alternative<Symbol>(*p.first))
     {   
-        Arguments args{*p.second};
+        List args{*p.second};
         auto res = applySpecialForm(std::get<Symbol>(*p.first), args, env);
         if(res.has_value())
         {
@@ -176,7 +176,7 @@ Expression Evaluator::operator()(Pair& p)
     if(std::holds_alternative<Closure>(first))
     {
         auto evaluatedList = evalAllArgsInList(std::get<Pair>(*p.second), env);
-        Arguments args{ evaluatedList };
+        List args{ evaluatedList };
         return std::get<Closure>(first)(args);
     }
 

@@ -17,8 +17,8 @@ struct Closure;
 
 using Expression = std::variant<Null, Symbol, Integer, Boolean, Pair, Closure>;
 
-struct Arguments;
-struct Closure : std::function<Expression(Arguments&)> {};
+struct List;
+struct Closure : std::function<Expression(List&)> {};
 
 struct Pair
 {

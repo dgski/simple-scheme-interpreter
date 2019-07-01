@@ -74,13 +74,15 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
 // evaluation
 class List
 {
-    Pair& listOfArgs;
+    //Pair& listOfArgs;
+    Expression& source;
+
 public:
-    List(Expression& _listOfArgs) : listOfArgs(std::get<Pair>(_listOfArgs)) {}
+    List(Expression& _source) : source(_source) {}
 
     Expression& at(int index) const
     {
-        Pair* ref = &listOfArgs;
+        Pair* ref = &std::get<Pair>(source);
         while(index != 0)
         {
             ref = &std::get<Pair>(*ref->second);
@@ -92,12 +94,12 @@ public:
 
     Pair& all() const
     {
-        return listOfArgs;
+        return std::get<Pair>(source);
     }
 
     Expression& last() const
     {
-        Pair* ref = &listOfArgs;
+        Pair* ref = &std::get<Pair>(source);
         while(!std::holds_alternative<Null>(*ref->second))
         {
             ref = &std::get<Pair>(*ref->second);

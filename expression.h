@@ -13,12 +13,12 @@ using Symbol = std::string;
 using Integer = int;
 using Boolean = bool;
 struct Pair;
-struct Function;
+struct Closure;
 
-using Expression = std::variant<Null, Symbol, Integer, Boolean, Pair, Function>;
+using Expression = std::variant<Null, Symbol, Integer, Boolean, Pair, Closure>;
 
 struct Arguments;
-struct Function : std::function<Expression(Arguments&)> {};
+struct Closure : std::function<Expression(Arguments&)> {};
 
 struct Pair
 {
@@ -57,9 +57,9 @@ struct ExpressionStream
         os << "(" << *p.first << " " << *p.second << ")";
         return os;
     }
-    std::ostream& operator()(Function f)
+    std::ostream& operator()(Closure f)
     {
-        os << "<Function>";
+        os << "<Closure>";
         return os;
     }
 };

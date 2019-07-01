@@ -122,7 +122,7 @@ public:
     Expression operator()(Integer& i) { return i; }
     Expression operator()(Boolean& b) { return b; }
     Expression operator()(Pair& p);
-    Expression operator()(Function& f) { return f; }
+    Expression operator()(Closure& f) { return f; }
 };
 // end evaluation
 

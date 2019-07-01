@@ -39,7 +39,7 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
         auto newEnv = env;
         newEnv.add();
 
-        return Function{[newEnv, lambdaBody, names](Arguments& args) mutable
+        return Closure{[newEnv, lambdaBody, names](Arguments& args) mutable
         {
             insertArgsIntoEnvironment(std::get<Pair>(names), args.all(), *newEnv.back());
             return eval(lambdaBody, newEnv);
@@ -64,21 +64,21 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
 {
     if(s == "addOne")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return Integer{std::get<Integer>(args.at(0)) + 1};
         }};
     }
     else if(s == "minusOne")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return Integer{std::get<Integer>(args.at(0)) - 1};
         }};
     }
     else if(s == "=")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             auto arg0 = std::get<Integer>(args.at(0));
             auto arg1 = std::get<Integer>(args.at(1));
@@ -87,7 +87,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "<")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             auto arg0 = std::get<Integer>(args.at(0));
             auto arg1 = std::get<Integer>(args.at(1));
@@ -96,7 +96,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "cons")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return Pair{
                 std::make_shared<Expression>(args.at(0)),
@@ -106,35 +106,35 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "first")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return *std::get<Pair>(args.at(0)).first;
         }};
     }
     else if(s == "rest")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return *std::get<Pair>(args.at(0)).second;
         }};
     }
     else if(s == "null?")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return Boolean{ std::holds_alternative<Null>(args.at(0)) };
         }};
     }
     else if(s == "eqv?")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
         }};
     }
     else if(s == "println")
     {
-        return Function{[](Arguments& args) mutable
+        return Closure{[](Arguments& args) mutable
         {
             std::cout << args.at(0) << '\n';
             return Null{};
@@ -174,11 +174,11 @@ Expression Evaluator::operator()(Pair& p)
     
     auto first = eval(*p.first, env);
     
-    if(std::holds_alternative<Function>(first))
+    if(std::holds_alternative<Closure>(first))
     {
         auto evaluatedList = evalAllArgsInList(std::get<Pair>(*p.second), env);
         Arguments args{ evaluatedList };
-        return std::get<Function>(first)(args);
+        return std::get<Closure>(first)(args);
     }
 
     return Null{};

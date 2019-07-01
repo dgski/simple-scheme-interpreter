@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "interpreter.h"
 
 Expression eval(Expression& exp, Environments& env)
@@ -65,6 +67,24 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
         return Closure{[](List& args)
         {
             return Integer{std::get<Integer>(args.at(0)) - 1};
+        }};
+    }
+    else if(s == "+")
+    {
+        return Closure{[](List& args)
+        {
+            auto arg0 = std::get<Integer>(args.at(0));
+            auto arg1 = std::get<Integer>(args.at(1));
+            return Integer{ arg0 + arg1 };
+        }};
+    }
+    else if(s == "minus")
+    {
+        return Closure{[](List& args)
+        {
+            auto arg0 = std::get<Integer>(args.at(0));
+            auto arg1 = std::get<Integer>(args.at(1));
+            return Integer{ arg0 - arg1 };
         }};
     }
     else if(s == "=")
@@ -151,6 +171,14 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
         return Closure{[](List& args)
         {
             return args.all();
+        }};
+    }
+    else if(s == "current-time")
+    {
+        return Closure{[](List& args)
+        {   
+            auto unixTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            return Integer{ unixTime };
         }};
     }
 

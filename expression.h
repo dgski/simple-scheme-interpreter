@@ -10,7 +10,7 @@
 
 struct Null{};
 using Symbol = std::string;
-using Integer = int;
+using Integer = long long;
 using Boolean = bool;
 struct Pair;
 struct Closure;

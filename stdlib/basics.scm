@@ -12,19 +12,6 @@
     (lambda (a b)
         (or (= a b)
             (> a b))))
-
-(define +
-    (lambda (a b)
-        (if (= a 0)
-            b
-            (addOne (+ (minusOne a) b)))))
-
-(define minus
-    (lambda (a b)
-        (if (= b 0)
-            a
-            (minusOne (minus a (minusOne b))))))
-
 (define *
     (lambda (a b)
         (if (= a 0)
@@ -126,7 +113,6 @@
 
 (define car first)
 (define cdr rest)
-
 ; struct
 (define caar
     (lambda (p)
@@ -153,3 +139,12 @@
     (if (eqv? field (caar struct))
         (cdar struct)
         (: field (cdr struct)))))
+; utils
+(define runner
+    (lambda (func start-time)
+        (begin (func)
+               (minus (current-time) start-time))))
+
+(define timed-test
+    (lambda (func)
+        (runner func (current-time))))

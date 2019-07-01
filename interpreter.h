@@ -108,7 +108,7 @@ public:
 };
 
 Expression eval(Expression& exp, Environments& env);
-std::optional<Expression> applySpecialForms(Symbol& formName, Arguments& args, Environments& env);
+std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, Environments& env);
 std::optional<Expression> getPrimitiveFunction(Symbol& s);
 
 class Evaluator

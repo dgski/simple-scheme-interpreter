@@ -55,21 +55,7 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
 
 std::optional<Expression> getPrimitiveFunction(Symbol& s)
 {
-    if(s == "addOne")
-    {
-        return Closure{[](List& args)
-        {
-            return Integer{std::get<Integer>(args.at(0)) + 1};
-        }};
-    }
-    else if(s == "minusOne")
-    {
-        return Closure{[](List& args)
-        {
-            return Integer{std::get<Integer>(args.at(0)) - 1};
-        }};
-    }
-    else if(s == "+")
+    if(s == "+")
     {
         return Closure{[](List& args)
         {

@@ -34,7 +34,7 @@
     (lambda (a b)
         (if (> 0 (- a b))
             0
-            (addOne (/ (- a b) b)))))
+            (+ 1 (/ (- a b) b)))))
 
 (define remainder
     (lambda (a b)
@@ -54,7 +54,7 @@
     (lambda (col)
         (if (null? col)
             0
-            (addOne (length (rest col))))))
+            (+ 1 (length (rest col))))))
 
 (define map
     (lambda (func col)
@@ -87,7 +87,7 @@
     (lambda (s e)
         (if (= s e)
             null
-            (cons s (iota (addOne s) e)))))
+            (cons s (iota (+ 1 s) e)))))
 
 (define or
     (lambda (a b)

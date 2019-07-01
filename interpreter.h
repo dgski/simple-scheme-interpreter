@@ -74,7 +74,6 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
 // evaluation
 class List
 {
-    //Pair& listOfArgs;
     Expression& source;
 
 public:

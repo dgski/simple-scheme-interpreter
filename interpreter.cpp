@@ -55,6 +55,11 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
         auto res = evalAllArgsInList(args.all(), env);
         return res;
     }
+    else if(formName == "exit")
+    {
+        exit(EXIT_SUCCESS);
+        return std::nullopt;
+    }
 
     return std::nullopt;
 }

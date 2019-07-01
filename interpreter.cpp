@@ -34,15 +34,14 @@ std::optional<Expression> applySpecialForm(Symbol& formName, Arguments& args, En
     }
     else if(formName == "lambda")
     {
-        auto names = args.at(0);
-        auto lambdaBody = args.at(1);
-        auto newEnv = env;
-        newEnv.add();
+        auto argNames = args.at(0);
+        auto body = args.at(1);
 
-        return Closure{[newEnv, lambdaBody, names](Arguments& args) mutable
+        return Closure{[newEnv = env, body, argNames](Arguments& args) mutable
         {
-            insertArgsIntoEnvironment(std::get<Pair>(names), args.all(), *newEnv.back());
-            return eval(lambdaBody, newEnv);
+            newEnv.add();
+            insertArgsIntoEnvironment(std::get<Pair>(argNames), args.all(), *newEnv.back());
+            return eval(body, newEnv);
         }};
     }
     else if(formName == "begin")
@@ -64,21 +63,21 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
 {
     if(s == "addOne")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return Integer{std::get<Integer>(args.at(0)) + 1};
         }};
     }
     else if(s == "minusOne")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return Integer{std::get<Integer>(args.at(0)) - 1};
         }};
     }
     else if(s == "=")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             auto arg0 = std::get<Integer>(args.at(0));
             auto arg1 = std::get<Integer>(args.at(1));
@@ -87,7 +86,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "<")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             auto arg0 = std::get<Integer>(args.at(0));
             auto arg1 = std::get<Integer>(args.at(1));
@@ -96,7 +95,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "cons")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return Pair{
                 std::make_shared<Expression>(args.at(0)),
@@ -106,35 +105,35 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     }
     else if(s == "first")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return *std::get<Pair>(args.at(0)).first;
         }};
     }
     else if(s == "rest")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return *std::get<Pair>(args.at(0)).second;
         }};
     }
     else if(s == "null?")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return Boolean{ std::holds_alternative<Null>(args.at(0)) };
         }};
     }
     else if(s == "eqv?")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
         }};
     }
     else if(s == "println")
     {
-        return Closure{[](Arguments& args) mutable
+        return Closure{[](Arguments& args)
         {
             std::cout << args.at(0) << '\n';
             return Null{};

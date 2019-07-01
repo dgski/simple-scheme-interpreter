@@ -65,6 +65,10 @@ std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
         intStr += c;
         return intParser(s, intStr);
     }
+    else if(intStr == "-" && isWhiteSpace(c) || isValidSymbol(c))
+    {
+        return symbolParser(s, intStr);
+    }
 
     return Integer{ atoi(intStr.c_str()) };
 }

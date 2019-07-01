@@ -78,7 +78,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return Integer{ arg0 + arg1 };
         }};
     }
-    else if(s == "minus")
+    else if(s == "-")
     {
         return Closure{[](List& args)
         {

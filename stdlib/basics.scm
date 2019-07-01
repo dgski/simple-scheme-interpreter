@@ -16,29 +16,29 @@
     (lambda (a b)
         (if (= a 0)
             0
-            (+ b (* (minus a 1) b)))))
+            (+ b (* (- a 1) b)))))
 
 (define **
     (lambda (a b)
         (if (= b 0)
             1
-            (* a (** a (minus b 1))))))
+            (* a (** a (- b 1))))))
 
 (define tet
     (lambda (a b)
         (if (= b 0)
             1
-            (** b (tet a (minus b 1))))))
+            (** b (tet a (- b 1))))))
 
 (define /
     (lambda (a b)
-        (if (> 0 (minus a b))
+        (if (> 0 (- a b))
             0
-            (addOne (/ (minus a b) b)))))
+            (addOne (/ (- a b) b)))))
 
 (define remainder
     (lambda (a b)
-        (minus a
+        (- a
                (* b (/ a b)))))
 
 (define even?
@@ -143,7 +143,7 @@
 (define runner
     (lambda (func start-time)
         (begin (func)
-               (minus (current-time) start-time))))
+               (- (current-time) start-time))))
 
 (define timed-test
     (lambda (func)

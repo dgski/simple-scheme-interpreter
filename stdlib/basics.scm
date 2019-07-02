@@ -56,6 +56,12 @@
             0
             (+ 1 (length (rest col))))))
 
+(define at
+    (lambda (index col)
+        (if (= 0 index)
+            (first col)
+            (at (- index 1) (rest col)))))
+
 (define map
     (lambda (func col)
         (if (null? col)

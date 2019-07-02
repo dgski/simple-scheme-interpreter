@@ -167,6 +167,27 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return Integer{ unixTime };
         }};
     }
+    else if(s == "int?")
+    {
+        return Closure{[](List& args)
+        {
+            return std::holds_alternative<Integer>(args.at(0));
+        }};
+    }
+    else if(s == "symbol?")
+    {
+        return Closure{[](List& args)
+        {
+            return std::holds_alternative<Symbol>(args.at(0));
+        }};
+    }
+    else if(s == "function?")
+    {
+        return Closure{[](List& args)
+        {
+            return std::holds_alternative<Closure>(args.at(0));
+        }};
+    }
 
     return std::nullopt;
 }

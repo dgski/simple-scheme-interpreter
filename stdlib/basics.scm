@@ -89,6 +89,14 @@
             null
             (cons s (iota (+ 1 s) e)))))
 
+; reflection
+
+(define atom?
+    (lambda (exp)
+        (or (or (int? exp) (symbol? exp))
+            (function? exp))))
+
+; logic
 (define or
     (lambda (a b)
         (if a
@@ -111,9 +119,10 @@
             #f
             #t)))
 
+; struct
 (define car first)
 (define cdr rest)
-; struct
+
 (define caar
     (lambda (p)
         (car (car p))))

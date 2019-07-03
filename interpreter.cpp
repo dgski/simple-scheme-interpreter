@@ -1,4 +1,5 @@
 #include <chrono>
+#include <algorithm>
 
 #include "interpreter.h"
 
@@ -195,6 +196,30 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
         return Closure{[](List& args)
         {
             return std::holds_alternative<Closure>(args.at(0));
+        }};
+    }
+    else if(s == "and")
+    {
+        return Closure{[](List& args)
+        {
+            return Boolean{
+                std::all_of(args.begin(), args.end(), [](Expression& e)
+                {
+                    return std::get<Boolean>(e) == Boolean{true};
+                })
+            };
+        }};
+    }
+    else if(s == "or")
+    {
+        return Closure{[](List& args)
+        {
+            return Boolean{
+                std::any_of(args.begin(), args.end(), [](Expression& e)
+                {
+                    return std::get<Boolean>(e) == Boolean{true};
+                })
+            };
         }};
     }
 

@@ -10,7 +10,7 @@
 
 #include "expression.h"
 
-class list_iterator
+class list_adaptor_iterator
 {
 public:
     Expression* data;
@@ -21,15 +21,19 @@ public:
     using pointer = Expression*;
     using reference = Expression&;
 
-    list_iterator(){}
-    list_iterator(pointer _data, pointer _next) : data(_data), next(_next) {}
+    list_adaptor_iterator(){}
+    list_adaptor_iterator(pointer _data, pointer _next) : data(_data), next(_next) {}
 
     reference operator*() { return *data; }
-    bool operator!=(const list_iterator& other)
+    bool operator!=(const list_adaptor_iterator& other)
     {
         return data != other.data;
     }
-    list_iterator & operator++()
+    bool operator==(const list_adaptor_iterator& other)
+    {
+        return data == other.data;
+    }
+    list_adaptor_iterator & operator++()
     {
         if(std::holds_alternative<Null>(*next))
         {
@@ -45,16 +49,16 @@ public:
 
         return *this;
     }
-    list_iterator operator++(int)
+    list_adaptor_iterator operator++(int)
     {
         if(std::holds_alternative<Null>(*next))
         {
-            return list_iterator(nullptr, nullptr);
+            return list_adaptor_iterator(nullptr, nullptr);
         }
         else
         {
             auto& p = std::get<Pair>(*next);
-            return list_iterator(data, next);
+            return list_adaptor_iterator(data, next);
         }
     }
 };
@@ -94,15 +98,15 @@ public:
         return *ref->first;
     }
 
-    list_iterator begin()
+    list_adaptor_iterator begin()
     {
         auto& p = std::get<Pair>(source);
-        return list_iterator(p.first.get(), p.second.get());
+        return list_adaptor_iterator(p.first.get(), p.second.get());
     }
 
-    list_iterator end()
+    list_adaptor_iterator end()
     {
-        return list_iterator(nullptr, nullptr);
+        return list_adaptor_iterator(nullptr, nullptr);
     }
 };
 

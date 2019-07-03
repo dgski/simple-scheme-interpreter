@@ -109,20 +109,6 @@
             #f
             #t)))
 
-(define or
-    (lambda (a b)
-        (cond
-            (a #t)
-            (b #t)
-            (else #f))))
-
-(define and
-    (lambda (a b)
-        (cond
-            ((not a) #f)
-            ((not b) #f)
-            (else #t))))
-
 ; struct
 (define car first)
 (define cdr rest)

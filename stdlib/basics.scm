@@ -75,13 +75,22 @@
             (cons elem null)
             (cons (first col) (append elem (rest col))))))
 
-(define filter
+(define filter-org
     (lambda (pred col)
         (if (null? col)
             null
             (if (pred (first col))
                 (cons (first col) (filter pred (rest col)))
                 (filter pred (rest col))))))
+
+(define else #t)
+
+;(define filter
+;    (lambda (pred col)
+;      (cond
+;            ((null? col) null)
+;            ((pred (first col)) (cons (first col) (filter pred (rest col))))
+;            (else filter pred (rest col)))))
 
 (define accumulate
     (lambda (func init col)

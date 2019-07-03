@@ -25,6 +25,15 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
             return eval(args.at(2), env);
         }
     }
+    else if(formName == "cond")
+    {
+        for(Expression& e : args)
+        {
+            List subExpr{ e };
+            if(std::get<Boolean>(eval(subExpr.at(0), env)))
+                return eval(subExpr.at(1), env);
+        }
+    }
     else if(formName == "quote")
     {
         return args.at(0);

@@ -75,22 +75,13 @@
             (cons elem null)
             (cons (first col) (append elem (rest col))))))
 
-(define filter-org
-    (lambda (pred col)
-        (if (null? col)
-            null
-            (if (pred (first col))
-                (cons (first col) (filter pred (rest col)))
-                (filter pred (rest col))))))
-
 (define else #t)
-
-;(define filter
-;    (lambda (pred col)
-;      (cond
-;            ((null? col) null)
-;            ((pred (first col)) (cons (first col) (filter pred (rest col))))
-;            (else filter pred (rest col)))))
+(define filter
+    (lambda (pred col)
+      (cond
+        ((null? col) null)
+        ((pred (first col)) (cons (first col) (filter pred (rest col))))
+        (else (filter pred (rest col))))))
 
 (define accumulate
     (lambda (func init col)
@@ -112,27 +103,25 @@
             (function? exp))))
 
 ; logic
-(define or
-    (lambda (a b)
-        (if a
-            #t
-            (if b
-                #t
-                #f))))
-
-(define and
-    (lambda (a b)
-        (if a
-            (if b
-                #t
-                #f)
-            #f)))
-
 (define not
     (lambda (expr)
         (if expr
             #f
             #t)))
+
+(define or
+    (lambda (a b)
+        (cond
+            (a #t)
+            (b #t)
+            (else #f))))
+
+(define and
+    (lambda (a b)
+        (cond
+            ((not a) #f)
+            ((not b) #f)
+            (else #t))))
 
 ; struct
 (define car first)

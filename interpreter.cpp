@@ -192,10 +192,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     return std::nullopt;
 }
 
-std::ostream& operator<<(std::ostream& os, const Expression& env)
-{
-    return std::visit(ExpressionStream{os}, env);
-}
+
 
 Expression Evaluator::operator()(Symbol& s)
 {
@@ -255,4 +252,9 @@ Expression evalAllArgsInList(Expression& exp, Environments& env)
         std::make_shared<Expression>(first),
         std::make_shared<Expression>(second)
     };
+}
+
+std::ostream& operator<<(std::ostream& os, const Expression& env)
+{
+    return std::visit(ExpressionStream{os}, env);
 }

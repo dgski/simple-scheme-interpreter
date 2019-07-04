@@ -104,9 +104,9 @@ struct GetElem
         }
         else if(std::holds_alternative<Instance>(elem))
         {
-            // Validate Function Call
-            // Return Return Type
-            throw std::runtime_error("Only Function Instance is callable");
+            if(std::get<Instance>(elem).value != "function")
+                throw std::runtime_error("Only Function Instance is callable");
+
             return std::get<Instance>(elem);
         }
     }

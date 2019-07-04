@@ -88,36 +88,33 @@ Prototype pairPrototype()
     };
 }
 
-/*
-Prototype func()
+
+Prototype funcPrototype()
 {
     return Prototype{
-        [](List& args)
+        [](List& args, DefinedTypes& df)
         {
-            auto argTypes = args.at(0);
-            auto returnType = get_elem(args.at(1));
+            //auto argTypes = get_elem(args.at(0), df);
+            //auto body = get_elem(args.at(1), df);
 
-            std::cout << "Func argTypes: " << argTypes << std::endl;
+            std::cout << "Func argTypes: " << args.at(0) << std::endl;
             std::cout << "Func returnType: " << args.at(1) << std::endl;
 
-            if(!std::holds_alternative<Type>(returnType))
-            {
-                throw std::runtime_error("Specified return type is not valid");
-            }
 
             return Type{
-                [returnType](List& args)
+                "<Function>",
+                [](std::vector<Instance> args, DefinedTypes& df)
                 {
-                    std::cout << "Func argNames:" << args.at(0) << std::endl;
-                    std::cout << "Func body:" << args.at(1) << std::endl;
+                    //std::cout << "Func argNames:" << args.at(0) << std::endl;
+                    //std::cout << "Func body:" << args.at(1) << std::endl;
 
-                    return Instance{"Func Instance"};
+                    return Instance{"function"};
                 }
             };
         }
     };
 }
-*/
+
 
 Elem GetElem::operator()(Symbol& s)
 {
@@ -129,12 +126,12 @@ Elem GetElem::operator()(Symbol& s)
     {
         return pairPrototype();
     }
-    /*
+    
     if(s == "Func")
     {
-        return func();
+        return funcPrototype();
     }
-    */
+    
 
     return Instance{"symbol"};
 }

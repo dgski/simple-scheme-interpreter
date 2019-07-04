@@ -1,85 +1,142 @@
 #include "type_checker.h"
 
-Type createType(Symbol& typeName, List& args, Environments& env)
-{   
-    if(typeName == "Int")
-    {
-        std::cout << "creating int type" << std::endl;
-        Type integer;
-        integer.validator = [](Type& type, List& args)
+Elem get_elem(Expression& exp, DefinedTypes& df)
+{
+    return std::visit(GetElem{df}, exp);
+}
+
+Type integerType()
+{
+    return Type{
+        "<Int>",
+        [](std::vector<Instance> args, DefinedTypes& df)
+        {   
+            if(args.at(0).value != "integer")
+            {
+                throw std::runtime_error("Needs Integer Argument");
+            }
+            return Instance{"integer"};
+        }
+    };
+}
+Prototype integerPrototype()
+{
+    return Prototype{
+        [](List& args, DefinedTypes& df)
         {
-            std::cout << "Int Validator" << std::endl;
-            return std::holds_alternative<Integer>(args.at(0));
-        };
-        return integer;
-    }
-    if(typeName == "Pair")
+            return integerType();
+        }
+    };
+}
+
+Type pairType(Elem type1, Elem type2)
+{
+    return Type{
+        "<Pair>",
+        [type1, type2](std::vector<Instance> args, DefinedTypes& df)
+        {   
+            if(args.size() == 1)
+                return args.at(0);
+
+            try
+            {
+                std::get<Type>(type1).to_instance({args.at(0)}, df);
+            }
+               catch(const std::exception& e)
+            {   
+                std::string msg = "=========== Pair Error ===========\n";
+                msg += "Expecting: " + std::get<Type>(type1).tag + '\n';
+                msg += "Got: " + args.at(0).value;
+
+                throw std::runtime_error(msg);
+            }
+
+            try
+            {
+                std::get<Type>(type2).to_instance({args.at(1)}, df);
+            }
+            catch(const std::exception& e)
+            {   
+                std::string msg = "=========== Pair Error ===========\n";
+                msg += "Expecting: " + std::get<Type>(type2).tag + '\n';
+                msg += "Got: " + args.at(1).value;
+
+                throw std::runtime_error(msg);
+            }
+            
+            
+            
+
+            return Instance{"pair"};
+        }
+    };
+}
+Prototype pairPrototype()
+{
+    return Prototype{
+    [](List& args, DefinedTypes& df)
     {
-        std::cout << "creating pair type" << std::endl;
-        Type p;
-
-        p.typeArgs.push_back(std::make_shared<Type>(std::visit(GetType{env}, args.at(0))));
-        p.typeArgs.push_back(std::make_shared<Type>(std::visit(GetType{env}, args.at(1))));        
-
-        p.validator = [](Type& type, List& args)
+        auto type1 = get_elem(args.at(0), df);
+        auto type2 = get_elem(args.at(1), df);
+        if(!std::holds_alternative<Type>(type1) || !std::holds_alternative<Type>(type2))
         {
-            auto first = args.at(0);
-            auto second = args.at(1);
-
-            std::cout << "args:" << first << std::endl;
-            std::cout << "args:" << second << std::endl;
-
-            List firstAdaptor{ first };
-            List secondAdaptor{ second };
-
-            return type.typeArgs.at(0)->validate(firstAdaptor) && type.typeArgs.at(0)->validate(secondAdaptor);
-        };
-        return p;
-    }
-
-    if(typeName == "Func")
-    {
-        Type func;
-
-        std::cout << args.all() << std::endl;
-        
-        int i = 0;
-        Expression* last = &args.last();
-        while(&args.at(i) != last)
-        {
-            func.typeArgs.push_back(std::make_shared<Type>(std::visit(GetType{env}, args.at(i))));
-            i++;
+            throw std::runtime_error("Pair Needs Valid Type Arguments");
         }
 
-        func.validator = [](Type& type, List& args)
-        {
-            auto argNames = args.at(0);
-            auto lambdaBody = args.at(1);
-            
-            auto end = type.typeArgs.end();
-            /*
-            auto begin = type.typeArgs.begin();
-            for(auto i = begin; i != end - 1; ++i)
-            {
-                
-            }
-            */
-
-            List adaptor { lambdaBody };
-            bool returnTypeValid = (*end)->validate(adaptor);
-
-            std::cout << "argNames:" << argNames << std::endl;
-            std::cout << "lambdaBody:" << lambdaBody << std::endl;
-        
-            return false;
-        };
-        return func;
-    }   
+        return pairType(type1, type2);
+    }
+    };
 }
 
-bool type_check(Expression& exp, Environments& env)
+/*
+Prototype func()
 {
-    return std::visit(TypeChecker{env}, exp);
+    return Prototype{
+        [](List& args)
+        {
+            auto argTypes = args.at(0);
+            auto returnType = get_elem(args.at(1));
 
-    return false;
+            std::cout << "Func argTypes: " << argTypes << std::endl;
+            std::cout << "Func returnType: " << args.at(1) << std::endl;
+
+            if(!std::holds_alternative<Type>(returnType))
+            {
+                throw std::runtime_error("Specified return type is not valid");
+            }
+
+            return Type{
+                [returnType](List& args)
+                {
+                    std::cout << "Func argNames:" << args.at(0) << std::endl;
+                    std::cout << "Func body:" << args.at(1) << std::endl;
+
+                    return Instance{"Func Instance"};
+                }
+            };
+        }
+    };
 }
+*/
+
+Elem GetElem::operator()(Symbol& s)
+{
+    if(s == "Int")
+    {
+        return integerPrototype();
+    }
+    else if(s == "Pair")
+    {
+        return pairPrototype();
+    }
+    /*
+    if(s == "Func")
+    {
+        return func();
+    }
+    */
+
+    return Instance{"symbol"};
+}
+
+// ((Pair (Int) (Pair (Int) (Int))) 1 ((Pair (Int) (Int)) 1 2))

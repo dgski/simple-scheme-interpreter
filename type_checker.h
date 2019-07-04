@@ -1,11 +1,13 @@
 #include "expression.h"
 #include "utils.h"
 #include <cassert>
+#include <vector>
 
 // (((Func (Int) Int) (x) x) 1)
 // ((Func (Int) Int) (x) x)
 // (Func (Int) Int)
 
+/*
 struct Type;
 using ValidatorFunc =  std::function<bool(Type&, List&)>;
 
@@ -20,79 +22,115 @@ struct Type
         return validator(*this, args);
     }
 };
+*/
 
-bool type_check(Expression& exp, Environments& env);
+// Prototype -> Type -> Instance
+//
+// Int -> <Int> -> (<Int> 1)
+//
+// Pair -> <Pair <Int> <Int>> -> (<Pair <Int> <Int>> 1 2)
+//
+// Func -> <Func <<Int>> <Int>> -> (<Func <<Int>> <Int>> (x) x)
+
+struct Type;
+using DefinedTypes = std::map<Symbol, Type>; 
 
 
-Type createType(Symbol& typeName, List& args, Environments& env);
+struct Instance;
 
-struct GetType
+using BuildInstanceFunc = std::function<Instance(std::vector<Instance> args, DefinedTypes& df)>;
+using ValidateInstanceFunc = std::function<bool(Instance& inst, DefinedTypes& df)>;
+
+struct Instance
 {
-    Environments& env;
-
-    GetType(Environments& _env) : env(_env) {}
-
-    Type operator()(Null& n) { return Type{}; }
-    Type operator()(Symbol& s)
-    {
-        Type gen;
-        gen.validator = [](Type& type, List& args)
-        {
-            std::cout << "Symbol validator" << std::endl;
-            return true;
-        };
-        return gen;
-    }
-    Type operator()(Integer& i) { return Type{}; }
-    Type operator()(Boolean& b) { return Type{};; }
-    Type operator()(Pair& p)
-    {
-        if(std::holds_alternative<Symbol>(*p.first))
-        {
-            List args{*p.second};
-            return createType(std::get<Symbol>(*p.first),args,env);
-        }
-        else if(std::holds_alternative<Pair>(*p.first))
-        {
-            auto res = std::visit(GetType{env}, *p.second);
-            return res;
-        }
-    }
-    Type operator()(Closure& f) { return Type{}; }
+    std::string value;
 };
 
+struct Type
+{
+    std::string tag;
+    BuildInstanceFunc to_instance;
+};
+
+
+using BuildTypeFunc = std::function<Type(List& args, DefinedTypes& df)>;
+
+struct Prototype
+{
+    BuildTypeFunc to_type;
+};
+
+
+using Elem = std::variant<Prototype, Type, Instance>;
+
+
+Prototype integer();
+Prototype pair();
+Prototype func();
+
+
+Elem get_elem(Expression& exp, DefinedTypes& df);
+
+
+
+struct GetElem
+{   
+    DefinedTypes df;
+
+    GetElem(DefinedTypes& _df) : df(_df) {}
+
+    Elem operator()(Null& n) { return Type{}; }
+    Elem operator()(Symbol& s);
+    Elem operator()(Integer& i) { return Instance{"integer"}; }
+    Elem operator()(Boolean& b) { return Type{}; }
+    Elem operator()(Pair& p)
+    {
+        auto elem = get_elem(*p.first, df);
+        if(std::holds_alternative<Prototype>(elem))
+        {
+            // Build Type
+            List args{ *p.second };
+            return std::get<Prototype>(elem).to_type(args, df);
+        }
+        else if(std::holds_alternative<Type>(elem))
+        {
+            // Build Instance
+            List args{ *p.second };
+            std::vector<Instance> inst;
+            for(auto& a : args)
+                inst.push_back(std::get<Instance>(get_elem(a, df)));
+            
+            return std::get<Type>(elem).to_instance(inst, df);
+        }
+        else if(std::holds_alternative<Instance>(elem))
+        {
+            // Validate Function Call
+            // Return Return Type
+            throw std::runtime_error("Only Function Instance is callable");
+            return std::get<Instance>(elem);
+        }
+    }
+    Elem operator()(Closure& f) { return Type{}; }
+};
+
+/*
 struct TypeChecker
 {
-    Environments& env;
-
-    TypeChecker(Environments& _env) : env(_env) {}
 
     bool operator()(Null& n) { return true; }
     bool operator()(Symbol& s)
     {
-        if(s == "Func")
-        {
-
-        }
+        return true;
     }
-    bool operator()(Integer& i) { return false; }
-    bool operator()(Boolean& b) { return false; }
+    bool operator()(Integer& i) { return true; }
+    bool operator()(Boolean& b) { return true; }
     bool operator()(Pair& p)
     {
-        if(std::holds_alternative<Symbol>(*p.first))
-        {
-            List args{*p.second};
-            auto res = createType(std::get<Symbol>(*p.first),args,env);
-            return true;
-        }
-        else if(std::holds_alternative<Pair>(*p.first))
-        {
-            auto res = std::visit(GetType{env}, *p.first);
-            List args{ *p.second };
-            return res.validate(args);
-        }
 
-        return type_check(*p.second, env);
+
+
+        return type_check(*p.second);
     }
     bool operator()(Closure& f) { return false; }
 };
+*/

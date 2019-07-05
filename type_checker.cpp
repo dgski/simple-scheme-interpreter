@@ -109,6 +109,8 @@ TypePtr GetType::operator()(Pair& p)
             {
                 throw std::runtime_error("Wrong Type Args");
             }
+
+            return type;
         }
 
         return std::make_shared<IntegerType>(IntegerType{});

@@ -15,7 +15,16 @@ int main()
         std::getline(std::cin,line);
         if(auto parseResult = parse(line); parseResult.has_value())
         {
-            auto res = get_type(parseResult.value());
+            try
+            {
+                auto res = get_type(parseResult.value());
+                std::cout << res->str() << std::endl;
+            }
+            catch(std::runtime_error& e)
+            {
+                std::cout << "======================== Type Error ========================" << std::endl;
+                std::cout << e.what() << std::endl;
+            }
         }
         else
         {

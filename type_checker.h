@@ -16,6 +16,7 @@ using TypePtrVector = std::vector<TypePtr>;
 struct Type
 {
     virtual bool validate_args(TypePtrVector args) = 0;
+    virtual std::string str() = 0;
 };
 
 TypePtr get_type(Expression& e);
@@ -27,6 +28,10 @@ struct NullType : Type
     {
         return dynamic_cast<NullType*>(args.at(0).get());
     }
+    virtual std::string str()
+    {
+        return "NullType";
+    }
 };
 
 struct IntegerType : Type
@@ -34,6 +39,10 @@ struct IntegerType : Type
     virtual bool validate_args(TypePtrVector args)
     {
         return dynamic_cast<IntegerType*>(args.at(0).get());
+    }
+    virtual std::string str()
+    {
+        return "IntegerType";
     }
 };
 
@@ -43,6 +52,10 @@ struct SymbolType : Type
     {
         return dynamic_cast<SymbolType*>(args.at(0).get());
     }
+    virtual std::string str()
+    {
+        return "SymbolType";
+    }
 };
 
 struct BooleanType : Type
@@ -50,6 +63,10 @@ struct BooleanType : Type
     virtual bool validate_args(TypePtrVector args)
     {
         return dynamic_cast<BooleanType*>(args.at(0).get());
+    }
+    virtual std::string str()
+    {
+        return "BooleanType";
     }
 };
 
@@ -68,6 +85,10 @@ struct PairType : Type
         return
             typeArg0->validate_args({args.at(0)}) &&
             typeArg1->validate_args({args.at(1)});
+    }
+    virtual std::string str()
+    {
+        return "PairType: " + typeArg0->str() + " " + typeArg0->str();
     }
 };
 
@@ -91,6 +112,16 @@ struct FuncType : Type
         std::cout << "body" << body << std::endl;
         return true;
     }
+    virtual std::string str()
+    {   
+        std::string res = "FuncType (";
+        for(auto& a : argTypes)
+        {
+            res += a->str();
+        }
+        res += ") ->" + retType->str();
+        return res;
+    }
 
     virtual bool validate_args(TypePtrVector args)
     {
@@ -103,7 +134,7 @@ struct CompleteFuncType : Type
     TypePtrVector argTypes;
     TypePtr retType;
 
-    CompleteFuncType(TypePtrVector& _argTypes, TypePtr _retType)
+    CompleteFuncType(TypePtrVector _argTypes, TypePtr _retType)
     : argTypes(_argTypes)
     {
         retType = _retType;
@@ -114,8 +145,20 @@ struct CompleteFuncType : Type
         return std::equal(argTypes.begin(), argTypes.end(), args.begin(),[](auto a, auto b)
         {
             std::cout << "Checking if types are equivalent" << std::endl;
-            return false;
+            std::cout << "Want:" << a->str() << std::endl;
+            std::cout << "Got:" << b->str() << std::endl;
+            return a->str() == b->str();
         });
+    }
+    virtual std::string str()
+    {
+        std::string res = "CompleteFuncType (";
+        for(auto& a : argTypes)
+        {
+            res += a->str();
+        }
+        res += ") ->" + retType->str();
+        return res;
     }
 };
 
@@ -128,10 +171,25 @@ struct GetType
     TypePtr operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
     TypePtr operator()(Symbol& s)
     {
+        // (Func (Int) (Int) (Int))
+        if(s == "+")
+        {
+            TypePtrVector args{ std::make_shared<IntegerType>(),std::make_shared<IntegerType>() };
+            auto retType = std::make_shared<IntegerType>();
+            return std::make_shared<CompleteFuncType>(args, retType);
+        }
+
+
         return std::make_shared<SymbolType>(SymbolType{});
     }
     TypePtr operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
     TypePtr operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }
     TypePtr operator()(Pair& p);
-    TypePtr operator()(Closure& f) { return std::make_shared<IntegerType>(IntegerType{}); }
+    TypePtr operator()(Closure& f)
+    {
+        std::cout << "got closure" << std::endl;
+        return std::make_shared<IntegerType>(IntegerType{});
+    }
 };
+
+// (((Func (Boolean) (Boolean)) (x) x) #t)

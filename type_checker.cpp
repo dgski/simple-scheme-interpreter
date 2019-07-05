@@ -39,6 +39,16 @@ std::optional<Prototype> getProtoType(Symbol& s)
             );
         };
     }
+    if(s == "Func")
+    {
+        return [](std::vector<std::shared_ptr<Type>> args)
+        {
+            auto retType = args.back();
+            args.pop_back();
+
+            return std::make_shared<FuncType>(args, retType);
+        };
+    }
 
     return std::nullopt;
 }

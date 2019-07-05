@@ -8,17 +8,20 @@
 // ((Func (Int) Int) (x) x)
 // (Func (Int) Int)
 
+using TypePtr = std::shared_ptr<Type>;
+using TypePtrVector = std::vector<TypePtr>;
+
 struct Type
 {
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args) = 0;
+    virtual bool validate_args(TypePtrVector args) = 0;
 };
 
-std::shared_ptr<Type> get_type(Expression& e);
+TypePtr get_type(Expression& e);
 
 
 struct NullType : Type
 {
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {
         return dynamic_cast<NullType*>(args.at(0).get());
     }
@@ -26,7 +29,7 @@ struct NullType : Type
 
 struct IntegerType : Type
 {
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {
         return dynamic_cast<IntegerType*>(args.at(0).get());
     }
@@ -34,7 +37,7 @@ struct IntegerType : Type
 
 struct SymbolType : Type
 {
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {
         return dynamic_cast<SymbolType*>(args.at(0).get());
     }
@@ -42,7 +45,7 @@ struct SymbolType : Type
 
 struct BooleanType : Type
 {
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {
         return dynamic_cast<BooleanType*>(args.at(0).get());
     }
@@ -50,15 +53,15 @@ struct BooleanType : Type
 
 struct PairType : Type
 {
-    std::shared_ptr<Type> typeArg0;
-    std::shared_ptr<Type> typeArg1;
+    TypePtr typeArg0;
+    TypePtr typeArg1;
 
-    PairType(std::shared_ptr<Type> _typeArg0, std::shared_ptr<Type> _typeArg1)
+    PairType(TypePtr _typeArg0, TypePtr _typeArg1)
     : typeArg0(_typeArg0),
     typeArg1(_typeArg1)
     {}
 
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {
         return typeArg0->validate_args({args.at(0)}) && typeArg1->validate_args({args.at(1)});
     }
@@ -66,10 +69,10 @@ struct PairType : Type
 
 struct FuncType : Type
 {
-    std::vector<std::shared_ptr<Type>> argTypes;
-    std::shared_ptr<Type> retType;
+    TypePtrVector argTypes;
+    TypePtr retType;
     
-    FuncType(std::vector<std::shared_ptr<Type>>& _argTypes, std::shared_ptr<Type> _retType)
+    FuncType(TypePtrVector& _argTypes, TypePtr _retType)
     : argTypes(_argTypes)
     {
         retType = _retType;
@@ -85,7 +88,7 @@ struct FuncType : Type
         return true;
     }
 
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {
         return true;
     }
@@ -93,16 +96,16 @@ struct FuncType : Type
 
 struct CompleteFuncType : Type
 {
-    std::vector<std::shared_ptr<Type>> argTypes;
-    std::shared_ptr<Type> retType;
+    TypePtrVector argTypes;
+    TypePtr retType;
 
-    CompleteFuncType(std::vector<std::shared_ptr<Type>>& _argTypes, std::shared_ptr<Type> _retType)
+    CompleteFuncType(TypePtrVector& _argTypes, TypePtr _retType)
     : argTypes(_argTypes)
     {
         retType = _retType;
     }
 
-    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    virtual bool validate_args(TypePtrVector args)
     {   
         return std::equal(argTypes.begin(), argTypes.end(), args.begin(),[](auto a, auto b)
         {
@@ -113,78 +116,18 @@ struct CompleteFuncType : Type
 };
 
 
-using Prototype = std::function<std::shared_ptr<Type>(std::vector<std::shared_ptr<Type>>)>;
+using Prototype = std::function<TypePtr(TypePtrVector)>;
 std::optional<Prototype> getProtoType(Symbol& s);
 
 struct GetType
 {   
-    std::shared_ptr<Type> operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
-    std::shared_ptr<Type> operator()(Symbol& s)
+    TypePtr operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
+    TypePtr operator()(Symbol& s)
     {
         return std::make_shared<SymbolType>(SymbolType{});
     }
-    std::shared_ptr<Type> operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
-    std::shared_ptr<Type> operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }
-    std::shared_ptr<Type> operator()(Pair& p)
-    {
-        if(std::holds_alternative<Symbol>(*p.first))
-        {
-            if(auto proto = getProtoType(std::get<Symbol>(*p.first)); proto.has_value())
-            {
-                std::vector<std::shared_ptr<Type>> typeArgs;
-                List args{ *p.second };
-                for(auto& a : args)
-                {
-                    std::cout << a << std::endl;
-                    typeArgs.push_back(get_type(a));
-                }
-                std::cout << "creating Type" << std::endl;
-                return proto.value()(typeArgs);
-            }
-        }
-        if(std::holds_alternative<Pair>(*p.first))
-        {
-            auto type = get_type(*p.first);
-
-            if(auto funcType = dynamic_cast<CompleteFuncType*>(type.get()); funcType)
-            {
-                std::vector<std::shared_ptr<Type>> typeArgs;
-                List args{ *p.second };
-                for(auto& a : args)
-                {
-                    typeArgs.push_back(get_type(a));
-                }
-
-                if(!funcType->validate_args(typeArgs))
-                {
-                    throw std::runtime_error("Incorrenct Arguments for Function");
-                }
-
-                return funcType->retType;
-            }
-
-            if(auto funcType = dynamic_cast<FuncType*>(type.get()); funcType)
-            {
-                List args{ *p.second };
-                funcType->validate_body(args);
-                return std::make_shared<CompleteFuncType>(funcType->argTypes, funcType->retType);
-            }
-
-            std::vector<std::shared_ptr<Type>> typeArgs;
-            List args{ *p.second };
-            for(auto& a : args)
-            {
-                typeArgs.push_back(get_type(a));
-            }
-                
-            std::cout << "validating arg Types" << std::endl;
-            if(!type->validate_args(typeArgs))
-            {
-                throw std::runtime_error("Wrong Type Args");
-            }
-        }
-
-        return std::make_shared<IntegerType>(IntegerType{});
-    }
-    std::shared_ptr<Type> operator()(Closure& f) { return std::make_shared<IntegerType>(IntegerType{}); }
+    TypePtr operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
+    TypePtr operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }
+    TypePtr operator()(Pair& p);
+    TypePtr operator()(Closure& f) { return std::make_shared<IntegerType>(IntegerType{}); }
 };

@@ -7,7 +7,7 @@
 int main()
 {
     std::string line;
-    DefinedTypes df;
+
 
     while(true)
     {
@@ -15,13 +15,24 @@ int main()
         std::getline(std::cin,line);
         if(auto parseResult = parse(line); parseResult.has_value())
         {
-            auto res = get_elem(parseResult.value(), df);
-            std::cout << std::get<Instance>(res).value << std::endl;
+            auto res = get_type(parseResult.value());
         }
         else
         {
             std::cout << "Error With Expression" << std::endl;
         }
     }
+    
+
+    Pair p{
+        std::make_shared<Expression>(Integer{ 1 }),
+        std::make_shared<Expression>(Null{})
+    };
+
+    Expression e{p};
+
+    List args{ e };
+    IntegerType it;
+    //std::cout << it.validate_args(args) << std::endl;
 
 }

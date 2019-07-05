@@ -87,15 +87,20 @@ public:
     reference operator*() { return *data; }
     bool operator!=(const list_adaptor_iterator& other)
     {
+        if(data == nullptr)
+            return false;
+
         return data != other.data;
     }
     bool operator==(const list_adaptor_iterator& other)
     {
+        if(data == nullptr)
+            return false;
         return data == other.data;
     }
     list_adaptor_iterator & operator++()
     {
-        if(std::holds_alternative<Null>(*next))
+        if(next == nullptr || std::holds_alternative<Null>(*next))
         {
             data = nullptr;
             next = nullptr;
@@ -111,7 +116,7 @@ public:
     }
     list_adaptor_iterator operator++(int)
     {
-        if(std::holds_alternative<Null>(*next))
+        if(next == nullptr || std::holds_alternative<Null>(*next))
         {
             return list_adaptor_iterator(nullptr, nullptr);
         }
@@ -161,6 +166,11 @@ public:
 
     list_adaptor_iterator begin()
     {
+        if(!std::holds_alternative<Pair>(source))
+        {
+            return list_adaptor_iterator(&source, nullptr);
+        }
+
         auto& p = std::get<Pair>(source);
         return list_adaptor_iterator(p.first.get(), p.second.get());
     }

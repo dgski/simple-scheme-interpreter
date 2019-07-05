@@ -7,130 +7,109 @@
 // ((Func (Int) Int) (x) x)
 // (Func (Int) Int)
 
-/*
-struct Type;
-using ValidatorFunc =  std::function<bool(Type&, List&)>;
-
 struct Type
-{  
-    std::vector<std::shared_ptr<Type>> typeArgs;
-    ValidatorFunc validator;
-    bool validate(List& args)
+{
+    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args) = 0;
+};
+
+struct NullType : Type
+{
+    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
     {
-        std::cout << "validate" << std::endl;
-        std::cout << args.all() << std::endl;
-        return validator(*this, args);
+        return dynamic_cast<NullType*>(args.at(0).get());
     }
 };
-*/
 
-// Prototype -> Type -> Instance
-//
-// Int -> <Int> -> (<Int> 1)
-//
-// Pair -> <Pair <Int> <Int>> -> (<Pair <Int> <Int>> 1 2)
-//
-// Func -> <Func <<Int>> <Int>> -> (<Func <<Int>> <Int>> (x) x)
-
-struct Type;
-using DefinedTypes = std::map<Symbol, Type>; 
-
-
-struct Instance;
-
-using BuildInstanceFunc = std::function<Instance(std::vector<Instance> args, DefinedTypes& df)>;
-using ValidateInstanceFunc = std::function<bool(Instance& inst, DefinedTypes& df)>;
-
-struct Instance
+struct IntegerType : Type
 {
-    std::string value;
+    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    {
+        return dynamic_cast<IntegerType*>(args.at(0).get());
+    }
 };
 
-struct Type
+struct SymbolType : Type
 {
-    std::string tag;
-    BuildInstanceFunc to_instance;
+    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    {
+        return dynamic_cast<SymbolType*>(args.at(0).get());
+    }
 };
 
-
-using BuildTypeFunc = std::function<Type(List& args, DefinedTypes& df)>;
-
-struct Prototype
+struct BooleanType : Type
 {
-    BuildTypeFunc to_type;
+    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    {
+        return dynamic_cast<BooleanType*>(args.at(0).get());
+    }
 };
 
+struct PairType : Type
+{
+    std::shared_ptr<Type> typeArg0;
+    std::shared_ptr<Type> typeArg1;
 
-using Elem = std::variant<Prototype, Type, Instance>;
+    PairType(std::shared_ptr<Type> _typeArg0, std::shared_ptr<Type> _typeArg1)
+    : typeArg0(_typeArg0),
+    typeArg1(_typeArg1)
+    {}
 
+    virtual bool validate_args(std::vector<std::shared_ptr<Type>> args)
+    {
+        return typeArg0->validate_args({args.at(0)}) && typeArg1->validate_args({args.at(1)});
+    }
+};
 
-Prototype integer();
-Prototype pair();
-Prototype func();
+std::shared_ptr<Type> get_type(Expression& e);
 
+using Prototype = std::function<std::shared_ptr<Type>(std::vector<std::shared_ptr<Type>>)>;
 
-Elem get_elem(Expression& exp, DefinedTypes& df);
+std::optional<Prototype> getProtoType(Symbol& s);
 
-
-
-struct GetElem
+struct GetType
 {   
-    DefinedTypes df;
-
-    GetElem(DefinedTypes& _df) : df(_df) {}
-
-    Elem operator()(Null& n) { return Type{}; }
-    Elem operator()(Symbol& s);
-    Elem operator()(Integer& i) { return Instance{"integer"}; }
-    Elem operator()(Boolean& b) { return Type{}; }
-    Elem operator()(Pair& p)
+    std::shared_ptr<Type> operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
+    std::shared_ptr<Type> operator()(Symbol& s)
     {
-        auto elem = get_elem(*p.first, df);
-        if(std::holds_alternative<Prototype>(elem))
+        return std::make_shared<SymbolType>(SymbolType{});
+    }
+    std::shared_ptr<Type> operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
+    std::shared_ptr<Type> operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }
+    std::shared_ptr<Type> operator()(Pair& p)
+    {
+        if(std::holds_alternative<Symbol>(*p.first))
         {
-            // Build Type
-            List args{ *p.second };
-            return std::get<Prototype>(elem).to_type(args, df);
+            if(auto proto = getProtoType(std::get<Symbol>(*p.first)); proto.has_value())
+            {
+                std::vector<std::shared_ptr<Type>> typeArgs;
+                List args{ *p.second };
+                for(auto& a : args)
+                {
+                    std::cout << a << std::endl;
+                    typeArgs.push_back(get_type(a));
+                }
+                std::cout << "creating Type" << std::endl;
+                return proto.value()(typeArgs);
+            }
         }
-        else if(std::holds_alternative<Type>(elem))
+        if(std::holds_alternative<Pair>(*p.first))
         {
-            // Build Instance
+            auto type = get_type(*p.first);
+            std::vector<std::shared_ptr<Type>> typeArgs;
             List args{ *p.second };
-            std::vector<Instance> inst;
             for(auto& a : args)
-                inst.push_back(std::get<Instance>(get_elem(a, df)));
-            
-            return std::get<Type>(elem).to_instance(inst, df);
+            {
+                typeArgs.push_back(get_type(a));
+            }
+                
+            std::cout << "validating arg Types" << std::endl;
+            if(!type->validate_args(typeArgs))
+            {
+                throw std::runtime_error("Wrong Type Args");
+            }
         }
-        else if(std::holds_alternative<Instance>(elem))
-        {
-            if(std::get<Instance>(elem).value != "function")
-                throw std::runtime_error("Only Function Instance is callable");
 
-            return std::get<Instance>(elem);
-        }
+        return std::make_shared<IntegerType>(IntegerType{});
     }
-    Elem operator()(Closure& f) { return Type{}; }
+    std::shared_ptr<Type> operator()(Closure& f) { return std::make_shared<IntegerType>(IntegerType{}); }
 };
-
-/*
-struct TypeChecker
-{
-
-    bool operator()(Null& n) { return true; }
-    bool operator()(Symbol& s)
-    {
-        return true;
-    }
-    bool operator()(Integer& i) { return true; }
-    bool operator()(Boolean& b) { return true; }
-    bool operator()(Pair& p)
-    {
-
-
-
-        return type_check(*p.second);
-    }
-    bool operator()(Closure& f) { return false; }
-};
-*/

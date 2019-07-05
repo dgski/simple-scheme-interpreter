@@ -8,6 +8,8 @@
 // ((Func (Int) Int) (x) x)
 // (Func (Int) Int)
 
+
+struct Type;
 using TypePtr = std::shared_ptr<Type>;
 using TypePtrVector = std::vector<TypePtr>;
 
@@ -63,7 +65,9 @@ struct PairType : Type
 
     virtual bool validate_args(TypePtrVector args)
     {
-        return typeArg0->validate_args({args.at(0)}) && typeArg1->validate_args({args.at(1)});
+        return
+            typeArg0->validate_args({args.at(0)}) &&
+            typeArg1->validate_args({args.at(1)});
     }
 };
 

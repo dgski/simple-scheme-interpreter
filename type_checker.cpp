@@ -63,7 +63,6 @@ TypePtr GetType::operator()(Pair& p)
                 List args{ *p.second };
                 for(auto& a : args)
                 {
-                    std::cout << a << std::endl;
                     typeArgs.push_back(get_type(a));
                 }
                 std::cout << "creating Type" << std::endl;

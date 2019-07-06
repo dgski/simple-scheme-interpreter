@@ -12,6 +12,7 @@
 struct Type;
 using TypePtr = std::shared_ptr<Type>;
 using TypePtrVector = std::vector<TypePtr>;
+using TypePtrMap = std::map<Symbol, TypePtr>;
 
 struct Type
 {
@@ -19,7 +20,7 @@ struct Type
     virtual std::string str() = 0;
 };
 
-TypePtr get_type(Expression& e);
+TypePtr get_type(Expression& e, TypePtrMap& typeMap);
 
 
 struct NullType : Type
@@ -88,7 +89,7 @@ struct PairType : Type
     }
     virtual std::string str()
     {
-        return "PairType: " + typeArg0->str() + " " + typeArg0->str();
+        return "PairType: " + typeArg0->str() + " " + typeArg1->str();
     }
 };
 
@@ -103,14 +104,24 @@ struct FuncType : Type
         retType = _retType;
     }
 
-    bool validate_body(List& args)
+    bool validate_body(List& args, TypePtrMap typeMap)
     {
-        auto argNames = args.at(0);
-        auto body = args.at(1);
-        std::cout << "validateBody" << std::endl;
-        std::cout << "argNames" <<  argNames << std::endl;
-        std::cout << "body" << body << std::endl;
-        return true;
+
+        auto it = argTypes.begin();
+        List argNames{ args.at(0) };
+        for(auto& name : argNames)
+        {
+            if(it == argTypes.end())
+            {
+                return false;
+            }
+            typeMap[std::get<Symbol>(name)] = *it;
+            ++it;
+        }
+
+        auto bodyType = get_type(args.at(1), typeMap);
+
+        return retType->str() == bodyType->str();
     }
     virtual std::string str()
     {   
@@ -157,7 +168,7 @@ struct CompleteFuncType : Type
         {
             res += a->str();
         }
-        res += ") ->" + retType->str();
+        res += ") -> " + retType->str();
         return res;
     }
 };
@@ -168,9 +179,14 @@ std::optional<Prototype> getProtoType(Symbol& s);
 
 struct GetType
 {   
+    TypePtrMap& typeMap;
+
+    GetType(TypePtrMap& _typeMap) : typeMap(_typeMap) {}
+
     TypePtr operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
     TypePtr operator()(Symbol& s)
     {
+        std::cout << "Checking symbol: " << "'" << s << "'" << std::endl;
         // (Func (Int) (Int) (Int))
         if(s == "+")
         {
@@ -179,8 +195,13 @@ struct GetType
             return std::make_shared<CompleteFuncType>(args, retType);
         }
 
+        auto it = typeMap.find(s);
+        if(it != typeMap.end())
+        {
+            return (*it).second;
+        }
 
-        return std::make_shared<SymbolType>(SymbolType{});
+        return std::make_shared<SymbolType>();
     }
     TypePtr operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
     TypePtr operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }

@@ -1,9 +1,9 @@
 #include "type_checker.h"
 
-TypePtr get_type(Expression& e)
+TypePtr get_type(Expression& e, TypePtrMap& typeMap)
 {
-    std::cout << e << std::endl;
-    return std::visit(GetType{}, e);
+    //std::cout << e << std::endl;
+    return std::visit(GetType{typeMap}, e);
 }
 
 std::optional<Prototype> getProtoType(Symbol& s)
@@ -22,7 +22,7 @@ std::optional<Prototype> getProtoType(Symbol& s)
             return std::make_shared<NullType>();
         };
     }
-    if(s == "Boolean")
+    if(s == "Bool")
     {
         return [](TypePtrVector args)
         {
@@ -63,15 +63,32 @@ TypePtr GetType::operator()(Pair& p)
                 List args{ *p.second };
                 for(auto& a : args)
                 {
-                    typeArgs.push_back(get_type(a));
+                    typeArgs.push_back(get_type(a, typeMap));
                 }
                 std::cout << "creating Type" << std::endl;
                 return proto.value()(typeArgs);
             }
+            auto type = get_type(*p.first, typeMap);
+            if(auto completeFuncType = dynamic_cast<CompleteFuncType*>(type.get()); completeFuncType)
+            {
+                TypePtrVector typeArgs;
+                List args{ *p.second };
+                for(auto& a : args)
+                {
+                    typeArgs.push_back(get_type(a, typeMap));
+                }
+
+                if(!completeFuncType->validate_args(typeArgs))
+                {
+                    throw std::runtime_error("Incorrenct Arguments for Function");
+                }
+
+                return completeFuncType->retType;
+            }
         }
         if(std::holds_alternative<Pair>(*p.first))
         {
-            auto type = get_type(*p.first);
+            auto type = get_type(*p.first, typeMap);
 
             if(auto completeFuncType = dynamic_cast<CompleteFuncType*>(type.get()); completeFuncType)
             {
@@ -79,7 +96,7 @@ TypePtr GetType::operator()(Pair& p)
                 List args{ *p.second };
                 for(auto& a : args)
                 {
-                    typeArgs.push_back(get_type(a));
+                    typeArgs.push_back(get_type(a, typeMap));
                 }
 
                 if(!completeFuncType->validate_args(typeArgs))
@@ -93,7 +110,13 @@ TypePtr GetType::operator()(Pair& p)
             if(auto funcType = dynamic_cast<FuncType*>(type.get()); funcType)
             {
                 List args{ *p.second };
-                funcType->validate_body(args);
+
+
+                if(!funcType->validate_body(args, typeMap))
+                {
+                    throw std::runtime_error("Function returns Incorrect Type");
+                }
+
                 return std::make_shared<CompleteFuncType>(funcType->argTypes, funcType->retType);
             }
 
@@ -101,7 +124,7 @@ TypePtr GetType::operator()(Pair& p)
             List args{ *p.second };
             for(auto& a : args)
             {
-                typeArgs.push_back(get_type(a));
+                typeArgs.push_back(get_type(a, typeMap));
             }
                 
             std::cout << "validating arg Types" << std::endl;

@@ -6,6 +6,7 @@ bool isValidSymbol(char c)
     {
         case '(': return false;
         case ')': return false;
+        case '"': return false;
         case ' ': return false;
         case '\n': return false;
         case '\'': return false;
@@ -126,6 +127,25 @@ std::optional<Expression> commentParser(std::string_view& s)
     return commentParser(s);
 }
 
+std::optional<Expression> stringParser(std::string_view& s, std::string& res)
+{
+    if(s.length() == 0)
+    {
+        return std::nullopt;
+    }
+    
+    const char c = s.front();
+    s.remove_prefix(1);
+
+    if(c == '"')
+    {
+        return String{ res };
+    }
+
+    res += c;
+    return stringParser(s,res);
+}
+
 std::optional<Expression> charParser(std::string_view& s)
 {
     if(s.length() == 0)
@@ -139,6 +159,11 @@ std::optional<Expression> charParser(std::string_view& s)
     if(c == '(')
     {
         return listParser(s);
+    }
+    if(c == '"')
+    {
+        std::string str;
+        return stringParser(s, str);
     }
     else if(c == ')')
     {

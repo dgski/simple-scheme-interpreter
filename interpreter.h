@@ -27,6 +27,7 @@ public:
 
     Expression operator()(Null& n) { return n; }
     Expression operator()(Symbol& s);
+    Expression operator()(String& s) { return s; }
     Expression operator()(Integer& i) { return i; }
     Expression operator()(Boolean& b) { return b; }
     Expression operator()(Pair& p);

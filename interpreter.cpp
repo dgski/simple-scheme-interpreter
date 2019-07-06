@@ -222,6 +222,34 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             };
         }};
     }
+    else if(s == "string-append")
+    {
+        return Closure{[](List& args)
+        {
+            auto str0 = std::get<String>(args.at(0));
+            auto str1 = std::get<String>(args.at(1));
+
+            return String{ str0 + str1 };
+        }};
+    }
+    else if(s == "string-len")
+    {
+        return Closure{[](List& args)
+        {
+            auto str = std::get<String>(args.at(0));
+            return Integer{ (long long)str.length() };
+        }};
+    }
+    else if(s == "string-slice")
+    {
+        return Closure{[](List& args)
+        {
+            auto start = std::get<Integer>(args.at(0));
+            auto end = std::get<Integer>(args.at(1));
+            auto str = std::get<String>(args.at(2));
+            return String{ str.substr(start, end) };
+        }};
+    }
 
     return std::nullopt;
 }

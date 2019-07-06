@@ -10,12 +10,13 @@
 
 struct Null{};
 using Symbol = std::string;
+struct String : std::string {};
 using Integer = long long;
 using Boolean = bool;
 struct Pair;
 struct Closure;
 
-using Expression = std::variant<Null, Symbol, Integer, Boolean, Pair, Closure>;
+using Expression = std::variant<Null, Symbol, String, Integer, Boolean, Pair, Closure>;
 
 struct List;
 struct Closure : std::function<Expression(List&)> {};
@@ -40,6 +41,11 @@ struct ExpressionStream
     std::ostream& operator()(Symbol s)
     {
         os << s;
+        return os;
+    }
+    std::ostream& operator()(String s)
+    {
+        os << '"' << s << '"';
         return os;
     }
     std::ostream& operator()(Integer i)

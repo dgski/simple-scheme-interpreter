@@ -59,6 +59,11 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
             return eval(body, newEnv);
         }};
     }
+    else if(formName == "import")
+    {
+        auto fileName = std::get<String>(args.at(0));
+        return parseAndEvalFile(fileName.c_str(), env);
+    }
 
     return std::nullopt;
 }
@@ -250,6 +255,16 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return String{ str.substr(start, end) };
         }};
     }
+    else if(s == "string-equal?")
+    {
+        return Closure{[](List& args)
+        {
+            auto str0 = std::get<String>(args.at(0));
+            auto str1 = std::get<String>(args.at(1));
+
+            return Boolean{ str0 == str1 };
+        }};
+    }
 
     return std::nullopt;
 }
@@ -317,4 +332,26 @@ Expression evalAllArgsInList(Expression& exp, Environments& env)
         std::make_shared<Expression>(first),
         std::make_shared<Expression>(second)
     };
+}
+
+Expression parseAndEvalFile(const char* fileName, Environments& env)
+{
+    std::ifstream f{fileName};
+    if(f.is_open())
+    {
+        std::stringstream ss;
+        ss << f.rdbuf();
+
+        std::string s{ ss.str() };
+        if(auto parseResult = multiParse(s); parseResult.has_value())
+        {
+            auto beginForm = Expression{Pair{
+                std::make_shared<Expression>(Symbol{"begin"}),
+                std::make_shared<Expression>(parseResult.value())
+            }};
+            return eval(beginForm, env);
+        }
+    }
+
+    return Null{};
 }

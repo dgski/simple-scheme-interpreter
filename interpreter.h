@@ -18,6 +18,7 @@
 Expression eval(Expression& exp, Environments& env);
 std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environments& env);
 std::optional<Expression> getPrimitiveFunction(Symbol& s);
+Expression parseAndEvalFile(const char* fileName, Environments& env);
 
 class Evaluator
 {

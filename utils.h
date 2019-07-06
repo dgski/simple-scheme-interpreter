@@ -7,8 +7,12 @@
 #include <iostream>
 #include <functional>
 #include <memory>
+#include <fstream>
+#include <sstream>
 
 #include "expression.h"
+#include "parser.h"
+#include "interpreter.h"
 
 class list_adaptor_iterator
 {

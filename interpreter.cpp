@@ -7,16 +7,16 @@ Expression eval(Expression& exp, Environments& env)
     return std::visit(Evaluator{env},exp);
 }
 
-std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environments& env)
+std::optional<Expression> applySpecialForm(SymbolInstance& formName, List& args, Environments& env)
 {
-    if(formName == "define")
+    if(formName == "def")
     {
-        env.set(std::get<Symbol>(args.at(0)), eval(args.at(1), env));
-        return Null{};
+        env.set(std::get<SymbolInstance>(args.at(0)), eval(args.at(1), env));
+        return NullInstance{};
     }
     else if(formName == "if")
     {
-        if(std::get<Boolean>(eval(args.at(0), env)))
+        if(std::get<BooleanInstance>(eval(args.at(0), env)))
         {
             return eval(args.at(1), env);
         }
@@ -32,7 +32,7 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
     else if(formName == "env")
     {
         std::cout << env << std::endl;
-        return Null{};
+        return NullInstance{};
     }
     else if(formName == "lambda")
     {
@@ -42,9 +42,9 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
         return Closure{[newEnv = env, body, argNames](List& args) mutable
         {
             newEnv.add();
-            if(!std::holds_alternative<Null>(argNames))
+            if(!std::holds_alternative<NullInstance>(argNames))
             {
-                insertArgsIntoEnvironment(std::get<Pair>(argNames), std::get<Pair>(args.all()), *newEnv.back());
+                insertArgsIntoEnvironment(std::get<PairInstance>(argNames), std::get<PairInstance>(args.all()), *newEnv.back());
             }
             return eval(body, newEnv);
         }};
@@ -53,139 +53,24 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
     return std::nullopt;
 }
 
-std::optional<Expression> getPrimitiveFunction(Symbol& s)
+std::optional<Expression> getPrimitiveFunction(SymbolInstance& s)
 {
     if(s == "+")
     {
         return Closure{[](List& args)
         {
-            auto arg0 = std::get<Integer>(args.at(0));
-            auto arg1 = std::get<Integer>(args.at(1));
-            return Integer{ arg0 + arg1 };
+            auto arg0 = std::get<IntegerInstance>(args.at(0));
+            auto arg1 = std::get<IntegerInstance>(args.at(1));
+            return IntegerInstance{ arg0 + arg1 };
         }};
     }
     else if(s == "-")
     {
         return Closure{[](List& args)
         {
-            auto arg0 = std::get<Integer>(args.at(0));
-            auto arg1 = std::get<Integer>(args.at(1));
-            return Integer{ arg0 - arg1 };
-        }};
-    }
-    else if(s == "=")
-    {
-        return Closure{[](List& args)
-        {
-            auto arg0 = std::get<Integer>(args.at(0));
-            auto arg1 = std::get<Integer>(args.at(1));
-            return Boolean{ arg0 == arg1 };
-        }};
-    }
-    else if(s == "<")
-    {
-        return Closure{[](List& args)
-        {
-            auto arg0 = std::get<Integer>(args.at(0));
-            auto arg1 = std::get<Integer>(args.at(1));
-            return Boolean{ arg0 < arg1 };
-        }};
-    }
-    else if(s == "cons")
-    {
-        return Closure{[](List& args)
-        {
-            return Pair{
-                std::make_shared<Expression>(args.at(0)),
-                std::make_shared<Expression>(args.at(1))
-            };
-        }};
-    }
-    else if(s == "first")
-    {
-        return Closure{[](List& args)
-        {
-            return *std::get<Pair>(args.at(0)).first;
-        }};
-    }
-    else if(s == "rest")
-    {
-        return Closure{[](List& args)
-        {
-            return *std::get<Pair>(args.at(0)).second;
-        }};
-    }
-    else if(s == "null?")
-    {
-        return Closure{[](List& args)
-        {
-            return Boolean{ std::holds_alternative<Null>(args.at(0)) };
-        }};
-    }
-    else if(s == "eqv?")
-    {
-        return Closure{[](List& args)
-        {
-            return Boolean{ std::get<Symbol>(args.at(0)) == std::get<Symbol>(args.at(1)) };
-        }};
-    }
-    else if(s == "println")
-    {
-        return Closure{[](List& args)
-        {
-            std::cout << args.at(0) << '\n';
-            return Null{};
-        }};
-    }
-    else if(s == "exit")
-    {
-        return Closure{[](List& args)
-        {
-            exit(EXIT_SUCCESS);
-            return Null{};
-        }};
-    }
-    else if(s == "begin")
-    {   
-        return Closure{[](List& args)
-        {
-            return args.last();
-        }};
-    }
-    else if(s == "list")
-    {
-        return Closure{[](List& args)
-        {
-            return args.all();
-        }};
-    }
-    else if(s == "current-time")
-    {
-        return Closure{[](List& args)
-        {   
-            auto unixTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            return Integer{ unixTime };
-        }};
-    }
-    else if(s == "int?")
-    {
-        return Closure{[](List& args)
-        {
-            return std::holds_alternative<Integer>(args.at(0));
-        }};
-    }
-    else if(s == "symbol?")
-    {
-        return Closure{[](List& args)
-        {
-            return std::holds_alternative<Symbol>(args.at(0));
-        }};
-    }
-    else if(s == "function?")
-    {
-        return Closure{[](List& args)
-        {
-            return std::holds_alternative<Closure>(args.at(0));
+            auto arg0 = std::get<IntegerInstance>(args.at(0));
+            auto arg1 = std::get<IntegerInstance>(args.at(1));
+            return IntegerInstance{ arg0 - arg1 };
         }};
     }
 
@@ -194,7 +79,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
 
 
 
-Expression Evaluator::operator()(Symbol& s)
+Expression Evaluator::operator()(SymbolInstance& s)
 {
     auto func = getPrimitiveFunction(s);
     if(func.has_value())
@@ -205,12 +90,12 @@ Expression Evaluator::operator()(Symbol& s)
     return env.get(s);
 }
 
-Expression Evaluator::operator()(Pair& p)
+Expression Evaluator::operator()(PairInstance& p)
 {   
-    if(std::holds_alternative<Symbol>(*p.first))
+    if(std::holds_alternative<SymbolInstance>(*p.first))
     {   
         List args{*p.second};
-        auto res = applySpecialForm(std::get<Symbol>(*p.first), args, env);
+        auto res = applySpecialForm(std::get<SymbolInstance>(*p.first), args, env);
         if(res.has_value())
         {
             return res.value();
@@ -226,29 +111,29 @@ Expression Evaluator::operator()(Pair& p)
         return std::get<Closure>(first)(args);
     }
 
-    return Null{};
+    return NullInstance{};
 }
 
-void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env)
+void insertArgsIntoEnvironment(PairInstance& names, PairInstance& args, Environment& env)
 {
-    env[std::get<Symbol>(*names.first)] = *args.first;
+    env[std::get<SymbolInstance>(*names.first)] = *args.first;
 
-    if(!std::holds_alternative<Null>(*names.second))
-        insertArgsIntoEnvironment(std::get<Pair>(*names.second), std::get<Pair>(*args.second), env);
+    if(!std::holds_alternative<NullInstance>(*names.second))
+        insertArgsIntoEnvironment(std::get<PairInstance>(*names.second), std::get<PairInstance>(*args.second), env);
 }
 
 Expression evalAllArgsInList(Expression& exp, Environments& env)
 {
-    if(std::holds_alternative<Null>(exp))
-        return Null{};
+    if(std::holds_alternative<NullInstance>(exp))
+        return NullInstance{};
 
-    auto p = std::get<Pair>(exp);
+    auto p = std::get<PairInstance>(exp);
     auto first = eval(*p.first, env);
-    auto second = std::holds_alternative<Null>(*p.second) ?
-        Null{} :
+    auto second = std::holds_alternative<NullInstance>(*p.second) ?
+        NullInstance{} :
         evalAllArgsInList(*p.second, env);
 
-    return Pair{
+    return PairInstance{
         std::make_shared<Expression>(first),
         std::make_shared<Expression>(second)
     };

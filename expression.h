@@ -8,19 +8,19 @@
 #include <functional>
 #include <memory>
 
-struct Null{};
-using Symbol = std::string;
-using Integer = long long;
-using Boolean = bool;
-struct Pair;
+struct NullInstance{};
+using SymbolInstance = std::string;
+using IntegerInstance = long long;
+using BooleanInstance = bool;
+struct PairInstance;
 struct Closure;
 
-using Expression = std::variant<Null, Symbol, Integer, Boolean, Pair, Closure>;
+using Expression = std::variant<NullInstance, SymbolInstance, IntegerInstance, BooleanInstance, PairInstance, Closure>;
 
 struct List;
 struct Closure : std::function<Expression(List&)> {};
 
-struct Pair
+struct PairInstance
 {
     std::shared_ptr<Expression> first, second;
 };
@@ -32,27 +32,27 @@ struct ExpressionStream
 
     ExpressionStream(std::ostream& _os) : os(_os) {}
 
-    std::ostream& operator()(Null n)
+    std::ostream& operator()(NullInstance n)
     {   
         os << "null";
         return os;
     }
-    std::ostream& operator()(Symbol s)
+    std::ostream& operator()(SymbolInstance s)
     {
         os << s;
         return os;
     }
-    std::ostream& operator()(Integer i)
+    std::ostream& operator()(IntegerInstance i)
     {
         os << i;
         return os;
     }
-    std::ostream& operator()(Boolean b)
+    std::ostream& operator()(BooleanInstance b)
     {
         os << (b ? "#t" : "#f");
         return os;
     }
-    std::ostream& operator()(Pair p)
+    std::ostream& operator()(PairInstance p)
     {
         os << "(" << *p.first << " " << *p.second << ")";
         return os;

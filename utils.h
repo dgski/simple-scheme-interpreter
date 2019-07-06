@@ -9,9 +9,9 @@
 #include <memory>
 
 // environments
-struct Environment : public std::map<Symbol,Expression>
+struct Environment : public std::map<SymbolInstance,Expression>
 {
-    bool contains(const Symbol& s) const
+    bool contains(const SymbolInstance& s) const
     {
         auto it = find(s);
         return it != end();
@@ -37,7 +37,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
         emplace_back(std::make_shared<Environment>());
     }
 
-    Expression get(const Symbol& s) const
+    Expression get(const SymbolInstance& s) const
     {
         auto it = rbegin();
         while(it != rend())
@@ -47,10 +47,10 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
             ++it;
         }
 
-        return Null{};
+        return NullInstance{};
     }
 
-    void set(const Symbol s, Expression value)
+    void set(const SymbolInstance s, Expression value)
     {
         back()->insert({s, value});
     }
@@ -100,14 +100,14 @@ public:
     }
     list_adaptor_iterator & operator++()
     {
-        if(next == nullptr || std::holds_alternative<Null>(*next))
+        if(next == nullptr || std::holds_alternative<NullInstance>(*next))
         {
             data = nullptr;
             next = nullptr;
         }
         else
         {
-            auto& p = std::get<Pair>(*next);
+            auto& p = std::get<PairInstance>(*next);
             data = p.first.get();
             next = p.second.get();
         }
@@ -116,13 +116,13 @@ public:
     }
     list_adaptor_iterator operator++(int)
     {
-        if(next == nullptr || std::holds_alternative<Null>(*next))
+        if(next == nullptr || std::holds_alternative<NullInstance>(*next))
         {
             return list_adaptor_iterator(nullptr, nullptr);
         }
         else
         {
-            auto& p = std::get<Pair>(*next);
+            auto& p = std::get<PairInstance>(*next);
             return list_adaptor_iterator(data, next);
         }
     }
@@ -138,10 +138,10 @@ public:
 
     Expression& at(int index) const
     {
-        Pair* ref = &std::get<Pair>(source);
+        PairInstance* ref = &std::get<PairInstance>(source);
         while(index != 0)
         {
-            ref = &std::get<Pair>(*ref->second);
+            ref = &std::get<PairInstance>(*ref->second);
             index -= 1;
         }
         
@@ -155,10 +155,10 @@ public:
 
     Expression& last() const
     {
-        Pair* ref = &std::get<Pair>(source);
-        while(!std::holds_alternative<Null>(*ref->second))
+        PairInstance* ref = &std::get<PairInstance>(source);
+        while(!std::holds_alternative<NullInstance>(*ref->second))
         {
-            ref = &std::get<Pair>(*ref->second);
+            ref = &std::get<PairInstance>(*ref->second);
         }
         
         return *ref->first;
@@ -166,12 +166,12 @@ public:
 
     list_adaptor_iterator begin()
     {
-        if(!std::holds_alternative<Pair>(source))
+        if(!std::holds_alternative<PairInstance>(source))
         {
             return list_adaptor_iterator(&source, nullptr);
         }
 
-        auto& p = std::get<Pair>(source);
+        auto& p = std::get<PairInstance>(source);
         return list_adaptor_iterator(p.first.get(), p.second.get());
     }
 

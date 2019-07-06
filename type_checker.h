@@ -9,7 +9,9 @@
 struct Type;
 using TypePtr = std::shared_ptr<Type>;
 using TypePtrVector = std::vector<TypePtr>;
-using TypePtrMap = std::map<Symbol, TypePtr>;
+using TypePtrMap = std::map<SymbolInstance, TypePtr>;
+
+using Prototype = std::function<TypePtr(TypePtrVector)>;
 
 struct Type
 {
@@ -17,6 +19,7 @@ struct Type
     virtual std::string str() = 0;
 };
 
+std::optional<Prototype> getProtoType(SymbolInstance& s);
 TypePtr get_type(Expression& e, TypePtrMap& typeMap);
 
 struct NullType : Type
@@ -108,7 +111,7 @@ struct FuncType : Type
             {
                 return false;
             }
-            typeMap[std::get<Symbol>(name)] = *it;
+            typeMap[std::get<SymbolInstance>(name)] = *it;
             ++it;
         }
 
@@ -162,8 +165,6 @@ struct CompleteFuncType : Type
     }
 };
 
-using Prototype = std::function<TypePtr(TypePtrVector)>;
-std::optional<Prototype> getProtoType(Symbol& s);
 
 struct GetType
 {   
@@ -171,10 +172,10 @@ struct GetType
 
     GetType(TypePtrMap& _typeMap) : typeMap(_typeMap) {}
 
-    TypePtr operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
-    TypePtr operator()(Symbol& s);
-    TypePtr operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
-    TypePtr operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }
-    TypePtr operator()(Pair& p);
+    TypePtr operator()(NullInstance& n) { return std::make_shared<NullType>(NullType{}); }
+    TypePtr operator()(SymbolInstance& s);
+    TypePtr operator()(IntegerInstance& i) { return std::make_shared<IntegerType>(IntegerType{}); }
+    TypePtr operator()(BooleanInstance& b) { return std::make_shared<BooleanType>(BooleanType{}); }
+    TypePtr operator()(PairInstance& p);
     TypePtr operator()(Closure& f) { return std::make_shared<IntegerType>(IntegerType{}); }
 };

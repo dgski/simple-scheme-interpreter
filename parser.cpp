@@ -41,11 +41,11 @@ std::optional<Expression> boolParser(std::string_view& s)
 
     if(c == 't')
     {
-        return Boolean{ true };
+        return BooleanInstance{ true };
     }
     else if(c == 'f')
     {
-        return Boolean{ false };
+        return BooleanInstance{ false };
     }
 
     return std::nullopt;    
@@ -55,7 +55,7 @@ std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
 {
     if(s.length() == 0)
     {
-        return Integer{ atoi(intStr.c_str()) };
+        return IntegerInstance{ atoi(intStr.c_str()) };
     }
     
     const char c = s.front();
@@ -70,14 +70,14 @@ std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
         return symbolParser(s, intStr);
     }
 
-    return Integer{ atoi(intStr.c_str()) };
+    return IntegerInstance{ atoi(intStr.c_str()) };
 }
 
 std::optional<Expression> symbolParser(std::string_view& s, std::string& res)
 {
     if(s.length() == 0)
     {
-        return Symbol{ res };
+        return SymbolInstance{ res };
     }
     
     const char c = s.front();
@@ -88,7 +88,7 @@ std::optional<Expression> symbolParser(std::string_view& s, std::string& res)
         return symbolParser(s,res);
     }
     
-    return Symbol{ res };
+    return SymbolInstance{ res };
 }
 
 std::optional<Expression> listParser(std::string_view& s)
@@ -96,13 +96,13 @@ std::optional<Expression> listParser(std::string_view& s)
     if(s.front() == ')')
     {
         s.remove_prefix(1);
-        return Null{};
+        return NullInstance{};
     }
 
     const auto first = whitespaceParser(s, charParser);
     const auto rest = listParser(s);
     
-    return Pair{
+    return PairInstance{
         std::make_shared<Expression>(first.value()),
         std::make_shared<Expression>(rest.value())
     };
@@ -112,7 +112,7 @@ std::optional<Expression> commentParser(std::string_view& s)
 {
     if(s.empty())
     {
-        return Null{};
+        return NullInstance{};
     }
 
     const char c = s.front();
@@ -142,7 +142,7 @@ std::optional<Expression> charParser(std::string_view& s)
     }
     else if(c == ')')
     {
-        return Null{};
+        return NullInstance{};
     }
     else if(c == '#')
     {
@@ -158,11 +158,11 @@ std::optional<Expression> charParser(std::string_view& s)
     {        
         if(auto res = charParser(s); res.has_value())
         {
-            return Pair{
-                std::make_shared<Expression>(Symbol{"quote"}),
-                std::make_shared<Expression>(Pair{
+            return PairInstance{
+                std::make_shared<Expression>(SymbolInstance{"quote"}),
+                std::make_shared<Expression>(PairInstance{
                     std::make_shared<Expression>(res.value()),
-                    std::make_shared<Expression>(Null{})
+                    std::make_shared<Expression>(NullInstance{})
                 })
             };
         }
@@ -214,7 +214,7 @@ std::optional<Expression> multiParser(std::string_view& s)
 {   
     if(s.empty())
     {
-        return Null{};
+        return NullInstance{};
     }
 
     const auto first = whitespaceParser(s, charParser);
@@ -222,7 +222,7 @@ std::optional<Expression> multiParser(std::string_view& s)
 
     if(first.has_value() && rest.has_value())
     {
-        return Pair{
+        return PairInstance{
             std::make_shared<Expression>(first.value()),
             std::make_shared<Expression>(rest.value())
         };

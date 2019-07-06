@@ -13,8 +13,8 @@
 
 
 Expression eval(Expression& exp, Environments& env);
-std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environments& env);
-std::optional<Expression> getPrimitiveFunction(Symbol& s);
+std::optional<Expression> applySpecialForm(SymbolInstance& formName, List& args, Environments& env);
+std::optional<Expression> getPrimitiveFunction(SymbolInstance& s);
 
 class Evaluator
 {
@@ -22,16 +22,16 @@ class Evaluator
 public:
     Evaluator(Environments& _env) : env(_env) {}
 
-    Expression operator()(Null& n) { return n; }
-    Expression operator()(Symbol& s);
-    Expression operator()(Integer& i) { return i; }
-    Expression operator()(Boolean& b) { return b; }
-    Expression operator()(Pair& p);
+    Expression operator()(NullInstance& n) { return n; }
+    Expression operator()(SymbolInstance& s);
+    Expression operator()(IntegerInstance& i) { return i; }
+    Expression operator()(BooleanInstance& b) { return b; }
+    Expression operator()(PairInstance& p);
     Expression operator()(Closure& f) { return f; }
 };
 // end evaluation
 
 // helper
-void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env);
+void insertArgsIntoEnvironment(PairInstance& names, PairInstance& args, Environment& env);
 Expression evalAllArgsInList(Expression& exp, Environments& env);
 // end helper

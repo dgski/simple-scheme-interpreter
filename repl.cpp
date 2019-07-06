@@ -15,8 +15,8 @@ void parseAndEvalFile(const char* fileName, Environments& env)
         std::string s{ ss.str() };
         if(auto parseResult = multiParse(s); parseResult.has_value())
         {
-            auto beginForm = Expression{Pair{
-                std::make_shared<Expression>(Symbol{"begin"}),
+            auto beginForm = Expression{PairInstance{
+                std::make_shared<Expression>(SymbolInstance{"begin"}),
                 std::make_shared<Expression>(parseResult.value())
             }};
             eval(beginForm, env);

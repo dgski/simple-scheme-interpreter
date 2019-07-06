@@ -34,9 +34,9 @@ int main()
     }
     
 
-    Pair p{
-        std::make_shared<Expression>(Integer{ 1 }),
-        std::make_shared<Expression>(Null{})
+    PairInstance p{
+        std::make_shared<Expression>(IntegerInstance{ 1 }),
+        std::make_shared<Expression>(NullInstance{})
     };
 
     Expression e{p};

@@ -1,8 +1,9 @@
 #include "type_checker.h"
 
+auto IntPtrInstance = std::make_shared<IntegerType>();
+
 TypePtr get_type(Expression& e, TypePtrMap& typeMap)
 {
-    //std::cout << e << std::endl;
     return std::visit(GetType{typeMap}, e);
 }
 
@@ -53,31 +54,57 @@ std::optional<Prototype> getProtoType(Symbol& s)
     return std::nullopt;
 }
 
+TypePtr GetType::operator()(Symbol& s)
+{
+    // (Func (Int) (Int) (Int))
+    if(s == "+")
+    {
+        TypePtrVector args{ IntPtrInstance, IntPtrInstance };
+        auto retType = IntPtrInstance;
+        return std::make_shared<CompleteFuncType>(args, retType);
+    }
+
+    // (Func (Int) (Int) (Int))
+    if(s == "-")
+    {
+        TypePtrVector args{ IntPtrInstance, IntPtrInstance };
+        auto retType = IntPtrInstance;
+        return std::make_shared<CompleteFuncType>(args, retType);
+    }
+
+    auto it = typeMap.find(s);
+    if(it != typeMap.end())
+    {
+        return (*it).second;
+    }
+
+    return std::make_shared<SymbolType>();
+}
+
+static TypePtrVector getTypesInList(List&& args, TypePtrMap& typeMap)
+{
+    TypePtrVector typeArgs;
+    for(auto& a : args)
+    {
+        typeArgs.push_back(get_type(a, typeMap));
+    }
+    return typeArgs;
+}
+
 TypePtr GetType::operator()(Pair& p)
     {
         if(std::holds_alternative<Symbol>(*p.first))
         {
             if(auto proto = getProtoType(std::get<Symbol>(*p.first)); proto.has_value())
             {
-                TypePtrVector typeArgs;
-                List args{ *p.second };
-                for(auto& a : args)
-                {
-                    typeArgs.push_back(get_type(a, typeMap));
-                }
-                std::cout << "creating Type" << std::endl;
+                auto typeArgs = getTypesInList(List{ *p.second }, typeMap);
                 return proto.value()(typeArgs);
             }
+            
             auto type = get_type(*p.first, typeMap);
             if(auto completeFuncType = dynamic_cast<CompleteFuncType*>(type.get()); completeFuncType)
             {
-                TypePtrVector typeArgs;
-                List args{ *p.second };
-                for(auto& a : args)
-                {
-                    typeArgs.push_back(get_type(a, typeMap));
-                }
-
+                auto typeArgs = getTypesInList(List{ *p.second }, typeMap);
                 if(!completeFuncType->validate_args(typeArgs))
                 {
                     throw std::runtime_error("Incorrenct Arguments for Function");
@@ -89,29 +116,19 @@ TypePtr GetType::operator()(Pair& p)
         if(std::holds_alternative<Pair>(*p.first))
         {
             auto type = get_type(*p.first, typeMap);
-
             if(auto completeFuncType = dynamic_cast<CompleteFuncType*>(type.get()); completeFuncType)
             {
-                TypePtrVector typeArgs;
-                List args{ *p.second };
-                for(auto& a : args)
-                {
-                    typeArgs.push_back(get_type(a, typeMap));
-                }
-
+                auto typeArgs = getTypesInList(List{ *p.second }, typeMap);
                 if(!completeFuncType->validate_args(typeArgs))
                 {
                     throw std::runtime_error("Incorrenct Arguments for Function");
                 }
-
                 return completeFuncType->retType;
             }
 
             if(auto funcType = dynamic_cast<FuncType*>(type.get()); funcType)
             {
                 List args{ *p.second };
-
-
                 if(!funcType->validate_body(args, typeMap))
                 {
                     throw std::runtime_error("Function returns Incorrect Type");
@@ -120,14 +137,7 @@ TypePtr GetType::operator()(Pair& p)
                 return std::make_shared<CompleteFuncType>(funcType->argTypes, funcType->retType);
             }
 
-            TypePtrVector typeArgs;
-            List args{ *p.second };
-            for(auto& a : args)
-            {
-                typeArgs.push_back(get_type(a, typeMap));
-            }
-                
-            std::cout << "validating arg Types" << std::endl;
+            auto typeArgs = getTypesInList(List{ *p.second }, typeMap);
             if(!type->validate_args(typeArgs))
             {
                 throw std::runtime_error("Wrong Type Args");

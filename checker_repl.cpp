@@ -7,8 +7,8 @@
 int main()
 {
     std::string line;
-
-
+    TypePtrMap typeMap;
+    
     while(true)
     {
         std::cout << "SSI>";
@@ -17,7 +17,8 @@ int main()
         {
             try
             {
-                auto res = get_type(parseResult.value());
+                
+                auto res = get_type(parseResult.value(),typeMap);
                 std::cout << res->str() << std::endl;
             }
             catch(std::runtime_error& e)

@@ -1,13 +1,10 @@
+#pragma once
+
 #include "expression.h"
 #include "utils.h"
 #include <cassert>
 #include <vector>
 #include <algorithm>
-
-// (((Func (Int) Int) (x) x) 1)
-// ((Func (Int) Int) (x) x)
-// (Func (Int) Int)
-
 
 struct Type;
 using TypePtr = std::shared_ptr<Type>;
@@ -21,7 +18,6 @@ struct Type
 };
 
 TypePtr get_type(Expression& e, TypePtrMap& typeMap);
-
 
 struct NullType : Type
 {
@@ -83,9 +79,7 @@ struct PairType : Type
 
     virtual bool validate_args(TypePtrVector args)
     {
-        return
-            typeArg0->validate_args({args.at(0)}) &&
-            typeArg1->validate_args({args.at(1)});
+        return typeArg0->validate_args({args.at(0)}) && typeArg1->validate_args({args.at(1)});
     }
     virtual std::string str()
     {
@@ -106,7 +100,6 @@ struct FuncType : Type
 
     bool validate_body(List& args, TypePtrMap typeMap)
     {
-
         auto it = argTypes.begin();
         List argNames{ args.at(0) };
         for(auto& name : argNames)
@@ -120,7 +113,6 @@ struct FuncType : Type
         }
 
         auto bodyType = get_type(args.at(1), typeMap);
-
         return retType->str() == bodyType->str();
     }
     virtual std::string str()
@@ -155,9 +147,6 @@ struct CompleteFuncType : Type
     {   
         return std::equal(argTypes.begin(), argTypes.end(), args.begin(),[](auto a, auto b)
         {
-            std::cout << "Checking if types are equivalent" << std::endl;
-            std::cout << "Want:" << a->str() << std::endl;
-            std::cout << "Got:" << b->str() << std::endl;
             return a->str() == b->str();
         });
     }
@@ -173,7 +162,6 @@ struct CompleteFuncType : Type
     }
 };
 
-
 using Prototype = std::function<TypePtr(TypePtrVector)>;
 std::optional<Prototype> getProtoType(Symbol& s);
 
@@ -184,33 +172,9 @@ struct GetType
     GetType(TypePtrMap& _typeMap) : typeMap(_typeMap) {}
 
     TypePtr operator()(Null& n) { return std::make_shared<NullType>(NullType{}); }
-    TypePtr operator()(Symbol& s)
-    {
-        std::cout << "Checking symbol: " << "'" << s << "'" << std::endl;
-        // (Func (Int) (Int) (Int))
-        if(s == "+")
-        {
-            TypePtrVector args{ std::make_shared<IntegerType>(),std::make_shared<IntegerType>() };
-            auto retType = std::make_shared<IntegerType>();
-            return std::make_shared<CompleteFuncType>(args, retType);
-        }
-
-        auto it = typeMap.find(s);
-        if(it != typeMap.end())
-        {
-            return (*it).second;
-        }
-
-        return std::make_shared<SymbolType>();
-    }
+    TypePtr operator()(Symbol& s);
     TypePtr operator()(Integer& i) { return std::make_shared<IntegerType>(IntegerType{}); }
     TypePtr operator()(Boolean& b) { return std::make_shared<BooleanType>(BooleanType{}); }
     TypePtr operator()(Pair& p);
-    TypePtr operator()(Closure& f)
-    {
-        std::cout << "got closure" << std::endl;
-        return std::make_shared<IntegerType>(IntegerType{});
-    }
+    TypePtr operator()(Closure& f) { return std::make_shared<IntegerType>(IntegerType{}); }
 };
-
-// (((Func (Boolean) (Boolean)) (x) x) #t)

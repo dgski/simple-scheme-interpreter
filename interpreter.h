@@ -11,10 +11,7 @@
 #include "expression.h"
 #include "utils.h"
 
-
 // evaluation
-
-
 Expression eval(Expression& exp, Environments& env);
 std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environments& env);
 std::optional<Expression> getPrimitiveFunction(Symbol& s);
@@ -37,6 +34,6 @@ public:
 // end evaluation
 
 // helper
-void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env);
-Expression evalAllArgsInList(Expression& exp, Environments& env);
+void insertArgsIntoEnvironment(const Pair& names, const Pair& args, Environment& env);
+Expression evalAllArgsInList(const Expression& exp, Environments& env);
 // end helper

@@ -143,7 +143,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
         emplace_back(std::make_shared<Environment>());
     }
 
-    Expression& get(const Symbol& s) const
+    Expression get(const Symbol& s) const
     {
         auto it = rbegin();
         while(it != rend())
@@ -153,7 +153,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
             ++it;
         }
 
-        throw std::runtime_error("Error: Symbol not in Environments");
+        return Null{};
     }
 
     void set(const Symbol s, const Expression& value)

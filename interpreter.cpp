@@ -32,7 +32,9 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
         {
             List subExpr{ e };
             if(std::get<Boolean>(eval(subExpr.at(0), env)))
+            {
                 return eval(subExpr.at(1), env);
+            }
         }
     }
     else if(formName == "quote")
@@ -46,8 +48,8 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
     }
     else if(formName == "lambda")
     {
-        auto argNames = args.at(0);
-        auto body = args.at(1);
+        auto& argNames = args.at(0);
+        auto& body = args.at(1);
 
         return Closure{[newEnv = env, body, argNames](List& args) mutable
         {
@@ -61,7 +63,7 @@ std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environ
     }
     else if(formName == "import")
     {
-        auto fileName = std::get<String>(args.at(0));
+        const auto& fileName = std::get<String>(args.at(0));
         return parseAndEvalFile(fileName.c_str(), env);
     }
 
@@ -178,8 +180,10 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     {
         return Closure{[](List& args)
         {   
-            auto unixTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            return Integer{ unixTime };
+            auto unixTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()
+            );
+            return Integer{ unixTime.count() };
         }};
     }
     else if(s == "int?")
@@ -231,8 +235,8 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     {
         return Closure{[](List& args)
         {
-            auto str0 = std::get<String>(args.at(0));
-            auto str1 = std::get<String>(args.at(1));
+            const auto& str0 = std::get<String>(args.at(0));
+            const auto& str1 = std::get<String>(args.at(1));
 
             return String{ str0 + str1 };
         }};
@@ -241,7 +245,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     {
         return Closure{[](List& args)
         {
-            auto str = std::get<String>(args.at(0));
+            const auto& str = std::get<String>(args.at(0));
             return Integer{ (long long)str.length() };
         }};
     }
@@ -251,7 +255,7 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
         {
             auto start = std::get<Integer>(args.at(0));
             auto end = std::get<Integer>(args.at(1));
-            auto str = std::get<String>(args.at(2));
+            const auto& str = std::get<String>(args.at(2));
             return String{ str.substr(start, end) };
         }};
     }
@@ -259,8 +263,8 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
     {
         return Closure{[](List& args)
         {
-            auto str0 = std::get<String>(args.at(0));
-            auto str1 = std::get<String>(args.at(1));
+            const auto& str0 = std::get<String>(args.at(0));
+            const auto& str1 = std::get<String>(args.at(1));
 
             return Boolean{ str0 == str1 };
         }};
@@ -271,12 +275,12 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
 
 Expression Evaluator::operator()(Symbol& s)
 {
-    auto func = getPrimitiveFunction(s);
+    const auto& func = getPrimitiveFunction(s);
     if(func.has_value())
     {
         return func.value();
     }
-
+    
     return env.get(s);
 }
 
@@ -284,15 +288,15 @@ Expression Evaluator::operator()(Pair& p)
 {   
     if(std::holds_alternative<Symbol>(*p.first))
     {   
-        List args{*p.second};
-        auto res = applySpecialForm(std::get<Symbol>(*p.first), args, env);
+        List args{ *p.second };
+        const auto& res = applySpecialForm(std::get<Symbol>(*p.first), args, env);
         if(res.has_value())
         {
             return res.value();
         }
     }
     
-    auto first = eval(*p.first, env);
+    const auto& first = eval(*p.first, env);
     
     if(std::holds_alternative<Closure>(first))
     {
@@ -301,25 +305,29 @@ Expression Evaluator::operator()(Pair& p)
         return std::get<Closure>(first)(args);
     }
 
-    return Null{};
+    throw std::runtime_error("Invalid Expression");
 }
 
-void insertArgsIntoEnvironment(Pair& names, Pair& args, Environment& env)
+void insertArgsIntoEnvironment(const Pair& names, const Pair& args, Environment& env)
 {
     env[std::get<Symbol>(*names.first)] = *args.first;
 
     if(!std::holds_alternative<Null>(*names.second))
+    {
         insertArgsIntoEnvironment(std::get<Pair>(*names.second), std::get<Pair>(*args.second), env);
+    }
 }
 
-Expression evalAllArgsInList(Expression& exp, Environments& env)
+Expression evalAllArgsInList(const Expression& exp, Environments& env)
 {
     if(std::holds_alternative<Null>(exp))
+    {
         return Null{};
+    }
 
-    auto p = std::get<Pair>(exp);
-    auto first = eval(*p.first, env);
-    auto second = std::holds_alternative<Null>(*p.second) ?
+    auto& p = std::get<Pair>(exp);
+    const auto& first = eval(*p.first, env);
+    const auto& second = std::holds_alternative<Null>(*p.second) ?
         Null{} :
         evalAllArgsInList(*p.second, env);
 
@@ -338,7 +346,7 @@ Expression parseAndEvalFile(const char* fileName, Environments& env)
         ss << f.rdbuf();
 
         std::string s{ ss.str() };
-        if(auto parseResult = multiParse(s); parseResult.has_value())
+        if(const auto& parseResult = multiParse(s); parseResult.has_value())
         {
             auto beginForm = Expression{Pair{
                 std::make_shared<Expression>(Symbol{"begin"}),

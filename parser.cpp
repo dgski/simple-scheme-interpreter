@@ -13,14 +13,16 @@ bool isValidSymbol(char c)
     }
 
     if(isdigit(c))
+    {
         return false;
+    }
 
     return true;
 }
 
 bool isWhiteSpace(char c)
 {
-        switch(c)
+    switch(c)
     {
         case ' ': return true;
         case '\n': return true;
@@ -38,18 +40,20 @@ std::optional<Expression> boolParser(std::string_view& s)
     }
 
     const char c = s.front();
-    s.remove_prefix(1);
-
+    
     if(c == 't')
     {
+        s.remove_prefix(1);
         return Boolean{ true };
     }
     else if(c == 'f')
     {
+        s.remove_prefix(1);
         return Boolean{ false };
     }
 
-    return std::nullopt;    
+    std::string symbolStr;
+    return symbolParser(s, symbolStr);  
 }
 
 std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
@@ -60,6 +64,7 @@ std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
     }
     
     const char c = s.front();
+
     if(isdigit(c))
     {
         s.remove_prefix(1);
@@ -82,6 +87,7 @@ std::optional<Expression> symbolParser(std::string_view& s, std::string& res)
     }
     
     const char c = s.front();
+
     if(isValidSymbol(c))
     {
         s.remove_prefix(1);
@@ -100,8 +106,8 @@ std::optional<Expression> listParser(std::string_view& s)
         return Null{};
     }
 
-    const auto first = whitespaceParser(s, charParser);
-    const auto rest = listParser(s);
+    const auto& first = whitespaceParser(s, charParser);
+    const auto& rest = listParser(s);
     
     return Pair{
         std::make_shared<Expression>(first.value()),
@@ -146,6 +152,22 @@ std::optional<Expression> stringParser(std::string_view& s, std::string& res)
     return stringParser(s,res);
 }
 
+std::optional<Expression> quoteParser(std::string_view& s)
+{
+    if(const auto& res = charParser(s); res.has_value())
+    {
+        return Pair{
+            std::make_shared<Expression>(Symbol{ "quote" }),
+            std::make_shared<Expression>(Pair{
+                std::make_shared<Expression>(res.value()),
+                std::make_shared<Expression>(Null{})
+            })
+        };
+    }
+
+    return std::nullopt;
+}
+
 std::optional<Expression> charParser(std::string_view& s)
 {
     if(s.length() == 0)
@@ -180,19 +202,8 @@ std::optional<Expression> charParser(std::string_view& s)
         return intParser(s, intStr);
     }
     else if(c == '\'')
-    {        
-        if(auto res = charParser(s); res.has_value())
-        {
-            return Pair{
-                std::make_shared<Expression>(Symbol{"quote"}),
-                std::make_shared<Expression>(Pair{
-                    std::make_shared<Expression>(res.value()),
-                    std::make_shared<Expression>(Null{})
-                })
-            };
-        }
-
-        return std::nullopt;
+    {
+        return quoteParser(s);
     }
     else if(c == ';')
     {
@@ -214,6 +225,7 @@ std::optional<Expression> whitespaceParser(std::string_view& s, ParserFunction n
     }
 
     const char c = s.front();
+
     if(isWhiteSpace(c))
     {
         s.remove_prefix(1);
@@ -242,8 +254,8 @@ std::optional<Expression> multiParser(std::string_view& s)
         return Null{};
     }
 
-    const auto first = whitespaceParser(s, charParser);
-    const auto rest = multiParser(s);
+    const auto& first = whitespaceParser(s, charParser);
+    const auto& rest = multiParser(s);
 
     if(first.has_value() && rest.has_value())
     {

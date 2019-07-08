@@ -37,7 +37,7 @@ public:
     {
         return data == other.data;
     }
-    list_adaptor_iterator & operator++()
+    list_adaptor_iterator& operator++()
     {
         if(std::holds_alternative<Null>(*next))
         {
@@ -46,7 +46,7 @@ public:
         }
         else
         {
-            auto& p = std::get<Pair>(*next);
+            const auto& p = std::get<Pair>(*next);
             data = p.first.get();
             next = p.second.get();
         }
@@ -61,8 +61,8 @@ public:
         }
         else
         {
-            auto& p = std::get<Pair>(*next);
-            return list_adaptor_iterator(data, next);
+            const auto& p = std::get<Pair>(*next);
+            return list_adaptor_iterator(p.first.get(), p.second.get());
         }
     }
 };
@@ -104,7 +104,7 @@ public:
 
     list_adaptor_iterator begin()
     {
-        auto& p = std::get<Pair>(source);
+        const auto& p = std::get<Pair>(source);
         return list_adaptor_iterator(p.first.get(), p.second.get());
     }
 
@@ -143,7 +143,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
         emplace_back(std::make_shared<Environment>());
     }
 
-    Expression get(const Symbol& s) const
+    Expression& get(const Symbol& s) const
     {
         auto it = rbegin();
         while(it != rend())
@@ -153,10 +153,14 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
             ++it;
         }
 
-        return Null{};
+        throw std::runtime_error("Error: Symbol not in Environments");
     }
 
-    void set(const Symbol s, Expression value)
+    void set(const Symbol s, const Expression& value)
+    {
+        back()->insert({s, value});
+    }
+    void set(const Symbol s, const Expression&& value)
     {
         back()->insert({s, value});
     }

@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 
+// types
 struct Null{};
 using Symbol = std::string;
 struct String : std::string {};
@@ -25,48 +26,48 @@ struct Pair
 {
     std::shared_ptr<Expression> first, second;
 };
+// end types
 
 std::ostream& operator<<(std::ostream& os, const Expression& e);
-struct ExpressionStream
+class ExpressionStream
 {
     std::ostream& os;
-
+public:
     ExpressionStream(std::ostream& _os) : os(_os) {}
 
-    std::ostream& operator()(Null n)
+    std::ostream& operator()(const Null& n)
     {   
         os << "null";
         return os;
     }
-    std::ostream& operator()(Symbol s)
+    std::ostream& operator()(const Symbol& s)
     {
         os << s;
         return os;
     }
-    std::ostream& operator()(String s)
+    std::ostream& operator()(const String& s)
     {
         os << '"' << s << '"';
         return os;
     }
-    std::ostream& operator()(Integer i)
+    std::ostream& operator()(const Integer& i)
     {
         os << i;
         return os;
     }
-    std::ostream& operator()(Boolean b)
+    std::ostream& operator()(const Boolean& b)
     {
         os << (b ? "#t" : "#f");
         return os;
     }
-    std::ostream& operator()(Pair p)
+    std::ostream& operator()(const Pair& p)
     {
         os << "(" << *p.first << " " << *p.second << ")";
         return os;
     }
-    std::ostream& operator()(Closure f)
+    std::ostream& operator()(const Closure& f)
     {
         os << "<Closure>";
         return os;
     }
 };
-// end types

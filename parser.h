@@ -15,11 +15,10 @@ std::optional<Expression> intParser(std::string_view& s, std::string& intStr);
 std::optional<Expression> symbolParser(std::string_view& s, std::string& res);
 std::optional<Expression> listParser(std::string_view& s);
 std::optional<Expression> commentParser(std::string_view& s);
+std::optional<Expression> quoteParser(std::string_view& s);
 std::optional<Expression> charParser(std::string_view& s);
 std::optional<Expression> whitespaceParser(std::string_view& s, ParserFunction next);
-
-std::optional<Expression> parse(std::string& s);
-
 std::optional<Expression> multiParser(std::string_view& s);
 
+std::optional<Expression> parse(std::string& s);
 std::optional<Expression> multiParse(std::string& s);

@@ -8,6 +8,10 @@ int main()
     env.add();
 
     parseAndEvalFile("stdlib/basics.scm", env);
+    parseAndEvalFile("stdlib/list.scm", env);
+    parseAndEvalFile("stdlib/math.scm", env);
+    parseAndEvalFile("stdlib/string.scm", env);
+    parseAndEvalFile("stdlib/utils.scm", env);
     
     while(true)
     {

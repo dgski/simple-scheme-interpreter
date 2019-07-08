@@ -200,6 +200,13 @@ std::optional<Expression> getPrimitiveFunction(Symbol& s)
             return std::holds_alternative<Symbol>(args.at(0));
         }};
     }
+    else if(s == "string?")
+    {
+        return Closure{[](List& args)
+        {
+            return std::holds_alternative<String>(args.at(0));
+        }};
+    }
     else if(s == "function?")
     {
         return Closure{[](List& args)

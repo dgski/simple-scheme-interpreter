@@ -14,6 +14,10 @@
     (lambda (str)
         (string-slice 1 (- (string-len str) 1) str)))
 
+(define string-is-substring?
+    (lambda (needle haystack)
+        (contains (string->list needle) (string->list haystack))))
+
 (define string->list
     (lambda (str)
         (if (string-empty? str)

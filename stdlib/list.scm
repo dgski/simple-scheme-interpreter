@@ -71,9 +71,3 @@
             ((and (equal? (first subcol) (first col))
                   (contains (rest subcol) (rest col))) #t)
             (else (contains subcol (rest col))))))
-
-(define take
-    (lambda (i col)
-        (if (= i 0)
-            null
-            (cons (first col) (take (- i 1) (rest col))))))

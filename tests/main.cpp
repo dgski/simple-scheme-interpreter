@@ -92,3 +92,85 @@ TEST_CASE("parsing Pair type works", "[parsing]")
     REQUIRE(std::get<Boolean>(*pair2.first) == Boolean{false});
     REQUIRE(std::holds_alternative<Null>(*pair2.second));
 }
+
+TEST_CASE("evaluating 'define' special form", "[specialforms]")
+{
+    std::string expString{"(define a 1)"};
+    auto exp = parse(expString);
+    Environments env;
+    env.add();
+    
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Integer>(env.get(Symbol{"a"})));
+    REQUIRE(std::get<Integer>(env.get(Symbol{"a"})) == Integer{1});
+}
+
+TEST_CASE("evaluating 'if' special form", "[specialforms]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("true predicate")
+    {
+        expString = "(if #t 'apple 'pear)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+        
+        REQUIRE(std::holds_alternative<Symbol>(res));
+        REQUIRE(std::get<Symbol>(res) == Symbol{"apple"});
+    }
+
+    SECTION("false predicate")
+    {
+        expString = "(if #f 'apple 123)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+        
+        REQUIRE(std::holds_alternative<Integer>(res));
+        REQUIRE(std::get<Integer>(res) == Integer{123});
+    }   
+}
+
+TEST_CASE("evaluating 'cond' special form", "[specialforms]")
+{
+    std::string expString{"(cond (#f 'spider-man) (#t \"edith\") (else 32))"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<String>(res));
+    REQUIRE(std::get<String>(res) == String{"edith"});
+}
+
+TEST_CASE("evaluating 'quote' special form", "[specialforms]")
+{
+    std::string expString{"(quote hello)"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Symbol>(res));
+    REQUIRE(std::get<Symbol>(res) == Symbol{"hello"});
+}
+
+TEST_CASE("evaluating 'env' special form", "[specialforms]")
+{
+    std::string expString{"(env)"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Null>(res));
+}
+
+TEST_CASE("evaluating 'lambda' special form", "[specialforms]")
+{
+    std::string expString{"((lambda (x y) x) 'scheme 'lisp)"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+    
+    REQUIRE(std::holds_alternative<Symbol>(res));
+    REQUIRE(std::get<Symbol>(res) == Symbol{"scheme"});
+}

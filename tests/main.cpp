@@ -174,3 +174,16 @@ TEST_CASE("evaluating 'lambda' special form", "[specialforms]")
     REQUIRE(std::holds_alternative<Symbol>(res));
     REQUIRE(std::get<Symbol>(res) == Symbol{"scheme"});
 }
+
+TEST_CASE("evaluating 'import' special form", "[specialforms]")
+{
+    std::string expString{"(import \"../../stdlib/basics.scm\")"};
+    Environments env;
+    env.add();
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+    auto elseExpr = env.get(Symbol{"else"});
+
+    REQUIRE(std::holds_alternative<Boolean>(elseExpr));
+    REQUIRE(std::get<Boolean>(elseExpr) == Boolean{true});
+}

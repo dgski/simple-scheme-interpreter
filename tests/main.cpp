@@ -187,3 +187,228 @@ TEST_CASE("evaluating 'import' special form", "[specialforms]")
     REQUIRE(std::holds_alternative<Boolean>(elseExpr));
     REQUIRE(std::get<Boolean>(elseExpr) == Boolean{true});
 }
+
+TEST_CASE("apply '+' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(+ 1 2)"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Integer>(res));
+    REQUIRE(std::get<Integer>(res) == Integer{3});
+}
+
+TEST_CASE("apply '-' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(- 100 10)"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Integer>(res));
+    REQUIRE(std::get<Integer>(res) == Integer{90});
+}
+
+TEST_CASE("apply '=' primitive function", "[primtiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("equal")
+    {
+        expString = "(= 100 100)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+        
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+
+    SECTION("not equal")
+    {
+        expString = "(= 120 100)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+        
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }  
+}
+
+TEST_CASE("apply '<' primitive function", "[primtiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("equal")
+    {
+        expString = "(< 20 100)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+        
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+
+    SECTION("not equal")
+    {
+        expString = "(< 2000 300)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+        
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'cons' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(cons 'a 'b)"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Pair>(res));
+
+    const auto& p = std::get<Pair>(res);
+
+    REQUIRE(std::holds_alternative<Symbol>(*p.first));
+    REQUIRE(std::get<Symbol>(*p.first) == Symbol{"a"});
+    REQUIRE(std::holds_alternative<Symbol>(*p.second));
+    REQUIRE(std::get<Symbol>(*p.second) == Symbol{"b"});
+}
+
+TEST_CASE("apply 'first' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(first '(a b))"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Symbol>(res));
+    REQUIRE(std::get<Symbol>(res) == Symbol{"a"});
+}
+
+TEST_CASE("apply 'rest' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(rest (cons 'a 'b))"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Symbol>(res));
+    REQUIRE(std::get<Symbol>(res) == Symbol{"b"});
+}
+
+TEST_CASE("apply 'null?' primitive function", "[primtiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("is null")
+    {
+        expString = "(null? null)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+
+    SECTION("is not null")
+    {
+        expString = "(null? '(1 2 3 4))";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'eqv?' primitive function", "[primtiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("Symbols are equivalent")
+    {
+        expString = "(eqv? 'hello 'hello)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+
+    SECTION("Symbols are not equivalent")
+    {
+        expString = "(eqv? 'iron-man 'spider-man)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'println' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(println 20202)"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Null>(res));
+}
+
+TEST_CASE("apply 'begin' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(begin 'a 2 (cons 1 2) #f)"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Boolean>(res));
+    REQUIRE(std::get<Boolean>(res) == Boolean{false});
+}
+
+TEST_CASE("apply 'list' primitive function", "[primtiveFunction]")
+{
+    std::string expString{"(list (+ 10 20))"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Pair>(res));
+
+    const auto& p = std::get<Pair>(res);
+
+    REQUIRE(std::holds_alternative<Integer>(*p.first));
+    REQUIRE(std::get<Integer>(*p.first) == Integer{30});
+    REQUIRE(std::holds_alternative<Null>(*p.second));
+}
+
+TEST_CASE("apply 'current-time' primitive function", "[primitiveFunction]")
+{
+    std::string expString{"(current-time)"};
+    auto exp = parse(expString);
+    Environments env;
+    auto res = eval(exp.value(), env);
+
+    auto currentTime = Integer{std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count()};
+
+    std::cout << res << std::endl;
+    std::cout << currentTime << std::endl;
+
+    REQUIRE(std::holds_alternative<Integer>(res));
+
+    const bool withinRange = 
+        (currentTime - 1000) < std::get<Integer>(res) ||
+        std::get<Integer>(res) > (currentTime + 1000);
+
+    REQUIRE(withinRange);
+}

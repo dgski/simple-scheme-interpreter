@@ -401,9 +401,6 @@ TEST_CASE("apply 'current-time' primitive function", "[primitiveFunction]")
         std::chrono::system_clock::now().time_since_epoch()
     ).count()};
 
-    std::cout << res << std::endl;
-    std::cout << currentTime << std::endl;
-
     REQUIRE(std::holds_alternative<Integer>(res));
 
     const bool withinRange = 
@@ -411,4 +408,213 @@ TEST_CASE("apply 'current-time' primitive function", "[primitiveFunction]")
         std::get<Integer>(res) > (currentTime + 1000);
 
     REQUIRE(withinRange);
+}
+
+TEST_CASE("apply 'int?' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given Integer argument")
+    {
+        expString = "(int? 344)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+    SECTION("given non-Integer argument")
+    {
+        expString = "(int? 'apple)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'symbol?' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given Symbol argument")
+    {
+        expString = "(symbol? 'apple)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+    SECTION("given non-Symbol argument")
+    {
+        expString = "(symbol? 1233)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'string?' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given String argument")
+    {
+        expString = "(string? \"hello\")";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+    SECTION("given non-String argument")
+    {
+        expString = "(string? 1233)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'function?' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given Function argument")
+    {
+        expString = "(function? (lambda (x) x))";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+    SECTION("given non-String argument")
+    {
+        expString = "(function? 1233)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'and' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given all true arguments")
+    {
+        expString = "(and #t #t #t #t #t)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+    SECTION("given one false argument")
+    {
+        expString = "(and #t #t #t #f #t)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+}
+
+TEST_CASE("apply 'or' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given all false arguments")
+    {
+        expString = "(or #f #f #f #f)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
+    SECTION("given one false argument")
+    {
+        expString = "(or #t #t #t #f #t)";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+}
+
+TEST_CASE("apply 'string-append' primitive function", "[primitiveFunction]")
+{
+    std::string expString{"(string-append \"hello\" \"world\")"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<String>(res));
+    REQUIRE(std::get<String>(res) == String{"helloworld"});
+}
+
+TEST_CASE("apply 'string-len' primitive function", "[primitiveFunction]")
+{
+    std::string expString{"(string-len \"mama\")"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<Integer>(res));
+    REQUIRE(std::get<Integer>(res) == Integer{4});
+}
+
+TEST_CASE("apply 'string-slice' primitive function", "[primitiveFunction]")
+{
+    std::string expString{"(string-slice 0 3 \"canada\")"};
+    Environments env;
+    auto exp = parse(expString);
+    auto res = eval(exp.value(), env);
+
+    REQUIRE(std::holds_alternative<String>(res));
+    REQUIRE(std::get<String>(res) == String{"can"});
+}
+
+TEST_CASE("apply 'string-equal?' primitive function", "[primitiveFunction]")
+{
+    std::string expString;
+    Environments env;
+
+    SECTION("given arguments are equal")
+    {
+        expString = "(string-equal? \"rust\" \"rust\")";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{true});
+    }
+
+    SECTION("given arguments are not equal")
+    {
+        expString = "(string-equal? \"rust\" \"go\")";
+        auto exp = parse(expString);
+        auto res = eval(exp.value(), env);
+
+        REQUIRE(std::holds_alternative<Boolean>(res));
+        REQUIRE(std::get<Boolean>(res) == Boolean{false});
+    }
 }

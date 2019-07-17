@@ -1,6 +1,6 @@
 #include "parser.h"
 
-bool isValidSymbol(char c)
+bool isValidSymbol(const char c)
 {
     switch(c)
     {
@@ -20,7 +20,7 @@ bool isValidSymbol(char c)
     return true;
 }
 
-bool isWhiteSpace(char c)
+bool isWhiteSpace(const char c)
 {
     switch(c)
     {
@@ -32,7 +32,7 @@ bool isWhiteSpace(char c)
     return false;
 }
 
-std::optional<Expression> boolParser(std::string_view& s)
+std::optional<const Expression> boolParser(std::string_view& s)
 {
     if(s.length() == 0)
     {
@@ -56,7 +56,7 @@ std::optional<Expression> boolParser(std::string_view& s)
     return symbolParser(s, symbolStr);  
 }
 
-std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
+std::optional<const Expression> intParser(std::string_view& s, std::string& intStr)
 {
     if(s.length() == 0)
     {
@@ -79,7 +79,7 @@ std::optional<Expression> intParser(std::string_view& s, std::string& intStr)
     return Integer{ atoi(intStr.c_str()) };
 }
 
-std::optional<Expression> symbolParser(std::string_view& s, std::string& res)
+std::optional<const Expression> symbolParser(std::string_view& s, std::string& res)
 {
     if(s.length() == 0)
     {
@@ -98,7 +98,7 @@ std::optional<Expression> symbolParser(std::string_view& s, std::string& res)
     return Symbol{ res };
 }
 
-std::optional<Expression> listParser(std::string_view& s)
+std::optional<const Expression> listParser(std::string_view& s)
 {   
     if(s.front() == ')')
     {
@@ -115,7 +115,7 @@ std::optional<Expression> listParser(std::string_view& s)
     };
 }
 
-std::optional<Expression> commentParser(std::string_view& s)
+std::optional<const Expression> commentParser(std::string_view& s)
 {
     if(s.empty())
     {
@@ -133,7 +133,7 @@ std::optional<Expression> commentParser(std::string_view& s)
     return commentParser(s);
 }
 
-std::optional<Expression> stringParser(std::string_view& s, std::string& res)
+std::optional<const Expression> stringParser(std::string_view& s, std::string& res)
 {
     if(s.length() == 0)
     {
@@ -152,7 +152,7 @@ std::optional<Expression> stringParser(std::string_view& s, std::string& res)
     return stringParser(s,res);
 }
 
-std::optional<Expression> quoteParser(std::string_view& s)
+std::optional<const Expression> quoteParser(std::string_view& s)
 {
     if(const auto& res = charParser(s); res.has_value())
     {
@@ -168,7 +168,7 @@ std::optional<Expression> quoteParser(std::string_view& s)
     return std::nullopt;
 }
 
-std::optional<Expression> charParser(std::string_view& s)
+std::optional<const Expression> charParser(std::string_view& s)
 {
     if(s.length() == 0)
     {
@@ -217,7 +217,7 @@ std::optional<Expression> charParser(std::string_view& s)
     }
 }
 
-std::optional<Expression> whitespaceParser(std::string_view& s, ParserFunction next)
+std::optional<const Expression> whitespaceParser(std::string_view& s, ParserFunction next)
 {
     if(s.length() == 0)
     {
@@ -235,19 +235,19 @@ std::optional<Expression> whitespaceParser(std::string_view& s, ParserFunction n
     return next(s);
 }
 
-std::optional<Expression> parse(std::string& s)
+std::optional<const Expression> parse(std::string& s)
 {
     std::string_view sv{s};
     return whitespaceParser(sv, charParser);
 }
 
-std::optional<Expression> parse(std::string s)
+std::optional<const Expression> parse(std::string s)
 {
     std::string_view sv{s};
     return whitespaceParser(sv, charParser);
 }
 
-std::optional<Expression> multiParser(std::string_view& s)
+std::optional<const Expression> multiParser(std::string_view& s)
 {   
     if(s.empty())
     {
@@ -268,7 +268,7 @@ std::optional<Expression> multiParser(std::string_view& s)
     return std::nullopt;
 }
 
-std::optional<Expression> multiParse(std::string& s)
+std::optional<const Expression> multiParse(std::string& s)
 {
     std::string_view sv{s};
     return multiParser(sv);

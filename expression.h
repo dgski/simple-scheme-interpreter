@@ -20,11 +20,11 @@ struct Closure;
 using Expression = std::variant<Null, Symbol, String, Integer, Boolean, Pair, Closure>;
 
 struct List;
-struct Closure : std::function<Expression(List&)> {};
+struct Closure : std::function<Expression(const List&)> {};
 
 struct Pair
 {
-    std::shared_ptr<Expression> first, second;
+    std::shared_ptr<const Expression> first, second;
 };
 // end types
 

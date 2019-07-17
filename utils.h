@@ -17,13 +17,13 @@
 class list_adaptor_iterator
 {
 public:
-    Expression* data;
-    Expression* next;
+    const Expression* data;
+    const Expression* next;
     using iterator_category = std::forward_iterator_tag;
-    using value_type = Expression;
+    using value_type = const Expression;
     using difference_type = size_t;
-    using pointer = Expression*;
-    using reference = Expression&;
+    using pointer = const Expression*;
+    using reference = const Expression&;
 
     list_adaptor_iterator(){}
     list_adaptor_iterator(pointer _data, pointer _next) : data(_data), next(_next) {}
@@ -69,14 +69,14 @@ public:
 
 class List
 {
-    Expression& source;
+    const Expression& source;
 
 public:
-    List(Expression& _source) : source(_source) {}
+    List(const Expression& _source) : source(_source) {}
 
-    Expression& at(int index) const
+    const Expression& at(int index) const
     {
-        Pair* ref = &std::get<Pair>(source);
+        const Pair* ref = &std::get<Pair>(source);
         while(index != 0)
         {
             ref = &std::get<Pair>(*ref->second);
@@ -86,14 +86,14 @@ public:
         return *ref->first;
     }
 
-    Expression& all() const
+    const Expression& all() const
     {
         return source;
     }
 
-    Expression& last() const
+    const Expression& last() const
     {
-        Pair* ref = &std::get<Pair>(source);
+        const Pair* ref = &std::get<Pair>(source);
         while(!std::holds_alternative<Null>(*ref->second))
         {
             ref = &std::get<Pair>(*ref->second);
@@ -102,13 +102,13 @@ public:
         return *ref->first;
     }
 
-    list_adaptor_iterator begin()
+    list_adaptor_iterator begin() const
     {
         const auto& p = std::get<Pair>(source);
         return list_adaptor_iterator(p.first.get(), p.second.get());
     }
 
-    list_adaptor_iterator end()
+    list_adaptor_iterator end() const
     {
         return list_adaptor_iterator(nullptr, nullptr);
     }
@@ -119,7 +119,7 @@ struct Environment : public std::map<Symbol,Expression>
 {
     bool contains(const Symbol& s) const
     {
-        auto it = find(s);
+        const auto it = find(s);
         return it != end();
     }
 
@@ -143,7 +143,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
         emplace_back(std::make_shared<Environment>());
     }
 
-    Expression get(const Symbol& s) const
+    const Expression get(const Symbol& s) const
     {
         auto it = rbegin();
         while(it != rend())

@@ -12,10 +12,10 @@
 #include "utils.h"
 
 // evaluation
-Expression eval(Expression& exp, Environments& env);
-std::optional<Expression> applySpecialForm(Symbol& formName, List& args, Environments& env);
-std::optional<Expression> getPrimitiveFunction(Symbol& s);
-Expression parseAndEvalFile(const char* fileName, Environments& env);
+const Expression eval(const Expression& exp, Environments& env);
+std::optional<const Expression> applySpecialForm(const Symbol& formName, const List& args, Environments& env);
+std::optional<const Expression> getPrimitiveFunction(const Symbol& s);
+const Expression parseAndEvalFile(const char* fileName, Environments& env);
 
 class Evaluator
 {
@@ -23,17 +23,17 @@ class Evaluator
 public:
     Evaluator(Environments& _env) : env(_env) {}
 
-    Expression operator()(Null& n) { return n; }
-    Expression operator()(Symbol& s);
-    Expression operator()(String& s) { return s; }
-    Expression operator()(Integer& i) { return i; }
-    Expression operator()(Boolean& b) { return b; }
-    Expression operator()(Pair& p);
-    Expression operator()(Closure& f) { return f; }
+    const Expression operator()(const Null& n) { return n; }
+    const Expression operator()(const Symbol& s);
+    const Expression operator()(const String& s) { return s; }
+    const Expression operator()(const Integer& i) { return i; }
+    const Expression operator()(const Boolean& b) { return b; }
+    const Expression operator()(const Pair& p);
+    const Expression operator()(const Closure& f) { return f; }
 };
 // end evaluation
 
 // helper
 void insertArgsIntoEnvironment(const Pair& names, const Pair& args, Environment& env);
-Expression evalAllArgsInList(const Expression& exp, Environments& env);
+const Expression evalAllArgsInList(const Expression& exp, Environments& env);
 // end helper

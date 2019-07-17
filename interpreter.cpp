@@ -283,6 +283,11 @@ std::optional<const Expression> getPrimitiveFunction(const Symbol& s)
 
 const Expression Evaluator::operator()(const Symbol& s)
 {
+    if(s == "null")
+    {
+        return Null{};
+    }
+
     const auto& func = getPrimitiveFunction(s);
     if(func.has_value())
     {

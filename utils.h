@@ -143,7 +143,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
         emplace_back(std::make_shared<Environment>());
     }
 
-    const Expression get(const Symbol& s) const
+    const Expression& get(const Symbol& s) const
     {
         auto it = rbegin();
         while(it != rend())
@@ -153,7 +153,7 @@ struct Environments : public std::vector<std::shared_ptr<Environment>>
             ++it;
         }
 
-        return Null{};
+        throw std::runtime_error("Symbol is not bound to value");
     }
 
     void set(const Symbol s, const Expression& value)

@@ -27,7 +27,7 @@ A subset of the Scheme language; implementation written in Modern C++. Not fast 
 | null? | [expr] -> Boolean |
 | eqv? | Symbol Symbol -> Boolean |
 | println | [expr] -> Null |
-| exit | Null |
+| exit | -> Null |
 | begin | [expr] ... -> expr |
 | list | [expr] ... -> Pair |
 | current-time | -> Integer |

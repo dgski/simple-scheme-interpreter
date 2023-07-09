@@ -16,15 +16,22 @@ using Integer = long long;
 using Boolean = bool;
 struct Pair;
 struct Closure;
+struct TailCall;
 
-using Expression = std::variant<Null, Symbol, String, Integer, Boolean, Pair, Closure>;
+using Expression = std::variant<Null, Symbol, String, Integer, Boolean, Pair, Closure, TailCall>;
 
 struct List;
 struct Closure : std::function<Expression(const List&)> {};
+struct TailCall {
+    std::shared_ptr<Expression> args;
+};
 
 struct Pair
 {
     std::shared_ptr<const Expression> first, second;
+
+    static std::vector<std::shared_ptr<const Expression>> garbage;
+    ~Pair();
 };
 // end types
 
@@ -62,12 +69,32 @@ public:
     }
     std::ostream& operator()(const Pair& p)
     {
-        os << "(" << *p.first << " " << *p.second << ")";
+        os << "(" << *p.first << " ";
+
+        if (!std::holds_alternative<Pair>(*p.second)) {
+            os << *p.second << ")";
+            return os;
+        }
+
+        auto next = std::get<Pair>(*p.second);
+
+        while (std::holds_alternative<Pair>(*next.second)) {
+            os << *next.first << " ";
+            next = std::get<Pair>(*next.second);
+        }
+
+        os << *next.second << ")";
+
         return os;
     }
     std::ostream& operator()(const Closure& f)
     {
         os << "<Closure>";
+        return os;
+    }
+    std::ostream& operator()(const TailCall& t)
+    {
+        os << "<TailCall " << *t.args << ">";
         return os;
     }
 };

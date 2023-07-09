@@ -3,6 +3,8 @@
 
 #include "interpreter.h"
 
+std::string currentFunctionName = "";
+
 const Expression eval(const Expression& exp, Environments& env)
 {
     return std::visit(Evaluator{env},exp);
@@ -309,13 +311,41 @@ const Expression Evaluator::operator()(const Pair& p)
         }
     }
     
-    const auto& first = eval(*p.first, env);
-    
+    // How can we tell we are performing a tail call?
+    // We need the current functions name
+    const auto functionName = std::get<Symbol>(*p.first);
+    if (functionName == currentFunctionName) {
+        auto evaledArgs = evalAllArgsInList(*p.second, env);
+        return TailCall{ std::make_shared<Expression>(evaledArgs) };
+    }
+
+    const auto& first = eval(functionName, env);
+
+    const auto oldCurrentFunctionName = currentFunctionName;
+    const bool isPrimitiveFunction = getPrimitiveFunction(functionName).has_value();
+    if (!isPrimitiveFunction) {
+        currentFunctionName = functionName;
+    }
+
     if(std::holds_alternative<Closure>(first))
     {
         const auto& evaluatedList = evalAllArgsInList(*p.second, env);
-        const List args{ evaluatedList };
-        return std::get<Closure>(first)(args);
+        List args{ evaluatedList };
+        Expression result = Null{};
+
+        while (true)
+        {
+            auto callResult = std::get<Closure>(first)(args);
+            result.swap(callResult);
+            if (!std::holds_alternative<TailCall>(result)) {
+                break;
+            }
+            auto tailCallArgs = std::get<TailCall>(result).args;
+            args.set(*tailCallArgs);
+        }
+
+        currentFunctionName = oldCurrentFunctionName;
+        return result;
     }
 
     throw std::runtime_error("Invalid Expression");
@@ -333,8 +363,12 @@ void insertArgsIntoEnvironment(const Pair& names, const Pair& args, Environment&
 
 const Expression evalAllArgsInList(const Expression& exp, Environments& env)
 {
+    const auto oldCurrentFunctionName = currentFunctionName;
+    currentFunctionName = "";
+
     if(std::holds_alternative<Null>(exp))
     {
+        currentFunctionName = oldCurrentFunctionName;
         return Null{};
     }
 
@@ -344,6 +378,7 @@ const Expression evalAllArgsInList(const Expression& exp, Environments& env)
         Null{} :
         evalAllArgsInList(*p.second, env);
 
+    currentFunctionName = oldCurrentFunctionName;
     return Pair{
         std::make_shared<const Expression>(first),
         std::make_shared<const Expression>(second)

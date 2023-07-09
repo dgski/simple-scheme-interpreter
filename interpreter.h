@@ -30,6 +30,7 @@ public:
     const Expression operator()(const Boolean& b) { return b; }
     const Expression operator()(const Pair& p);
     const Expression operator()(const Closure& f) { return f; }
+    const Expression operator()(const TailCall& t) { return t; }
 };
 // end evaluation
 

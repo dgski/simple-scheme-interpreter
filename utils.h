@@ -69,14 +69,18 @@ public:
 
 class List
 {
-    const Expression& source;
+    const Expression* source;
 
 public:
-    List(const Expression& _source) : source(_source) {}
+    List(const Expression& _source) : source(&_source) {}
+
+    void set(const Expression& _source) {
+        source = &_source;
+    }
 
     const Expression& at(int index) const
     {
-        const Pair* ref = &std::get<Pair>(source);
+        const Pair* ref = &std::get<Pair>(*source);
         while(index != 0)
         {
             ref = &std::get<Pair>(*ref->second);
@@ -88,12 +92,12 @@ public:
 
     const Expression& all() const
     {
-        return source;
+        return *source;
     }
 
     const Expression& last() const
     {
-        const Pair* ref = &std::get<Pair>(source);
+        const Pair* ref = &std::get<Pair>(*source);
         while(!std::holds_alternative<Null>(*ref->second))
         {
             ref = &std::get<Pair>(*ref->second);
@@ -104,7 +108,7 @@ public:
 
     list_adaptor_iterator begin() const
     {
-        const auto& p = std::get<Pair>(source);
+        const auto& p = std::get<Pair>(*source);
         return list_adaptor_iterator(p.first.get(), p.second.get());
     }
 
@@ -138,6 +142,8 @@ struct Environment : public std::map<Symbol,Expression>
 
 struct Environments : public std::vector<std::shared_ptr<Environment>>
 {
+    Symbol currentFunctionName;
+    
     void add()
     {
         emplace_back(std::make_shared<Environment>());
